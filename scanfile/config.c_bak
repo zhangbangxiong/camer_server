@@ -1,0 +1,103 @@
+#include "stdio.h"
+#include "dirent.h"
+#include "stdlib.h"
+#include "unistd.h"
+#include "list.h"
+#include <pthread.h>
+#include <string.h>
+#include <semaphore.h>
+#include <getopt.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+
+#include "config.h"
+#include "ezxml.h"
+#include "arm_xml.h"
+
+void configure(struct Config *config)
+{
+    ezxml_t rxml;
+    ezxml_t cxml;
+    ezxml_t sxml;
+    ezxml_t spxml;
+    ezxml_t ssxml;
+    char *scxml = NULL;
+
+    rxml = ezxml_parse_file("icodec.xml");
+   
+    if ((cxml = ezxml_child(rxml, "id")) == 0x0)      /* icodec id */
+        strcpy(config->xid, "icodec");
+    else
+        strcpy(config->xid, cxml->txt);
+
+    if ((cxml = ezxml_child(rxml, "codec_exec_dir")) != 0x0)      /* codec exec dir */
+        strcpy(config->xcodec_exec_dir, cxml->txt);
+
+    if ((cxml = ezxml_child(rxml, "tscut_exec_dir")) != 0x0)      /* codec exec dir */
+        strcpy(config->xtscut_exec_dir, cxml->txt);
+
+    if ((cxml = ezxml_child(rxml, "codec_log_path")) != 0x0)      /* codec log path */
+        strcpy(config->xcodec_log_path, cxml->txt);
+
+    if ((cxml = ezxml_child(rxml, "distribute_path")) != 0x0)      /* codec log path */
+        strcpy(config->xdistribute_path, cxml->txt);
+
+    if ((cxml = ezxml_child(rxml, "save_src_file_path")) != 0x0)      /* codec log path */
+        strcpy(config->xsave_src_file_path, cxml->txt);
+
+    if ((cxml = ezxml_child(rxml, "codec_path")) != 0x0)
+    {
+        if ((sxml = ezxml_child(cxml, "output_dir")) != 0x0)      /* codec output dir */
+            strcpy(config->xcodec_output_dir, sxml->txt);
+    }
+
+    if ((cxml = ezxml_child(rxml, "server")) != 0x0)
+    {
+        if ((sxml = ezxml_child(cxml, "report_server")) != 0x0)      /* codec output dir */
+	{
+            strcpy(config->xreport_server, sxml->txt);
+	}
+
+        if ((sxml = ezxml_child(cxml, "report_port")) != 0x0)      /* codec output dir */
+	{
+            strcpy(config->xreport_port, sxml->txt);
+	}
+
+        if ((sxml = ezxml_child(cxml, "image_server")) != 0x0)      /* codec output dir */
+	{
+            strcpy(config->ximage_server, sxml->txt);
+	}
+
+        if ((sxml = ezxml_child(cxml, "image_port")) != 0x0)      /* codec output dir */
+	{
+            strcpy(config->ximage_port, sxml->txt);
+	}
+    }
+
+    if ((cxml = ezxml_child(rxml, "stream")) != 0x0)      /* stream */
+    {
+        if ((sxml = ezxml_child(cxml, "video")) != 0x0)      /* stream video */
+        {
+            int loop = 0;
+            for(ssxml = ezxml_child(sxml, "mode"); ssxml != NULL; ssxml = ezxml_next(ssxml))      /* stream video */
+            {
+                if((scxml = parse_attrs(ssxml, "bitrate")) != NULL)
+                    strcpy(config->_codecparam[loop].xvideobitrate, scxml);
+                if ((spxml = ezxml_child(ssxml, "width")) != 0x0)      
+                    strcpy(config->_codecparam[loop].xvideowidth, spxml->txt);
+                if ((spxml = ezxml_child(ssxml, "height")) != 0x0)      
+                    strcpy(config->_codecparam[loop].xvideoheight, spxml->txt);
+
+                loop ++;
+            }
+	    config->xcodec_count = loop;
+        }
+
+    }
+}
+
+
+

@@ -1,0 +1,28 @@
+#############################################################################
+ 
+# $Id: Makefile,v 1.10 2011/05/31 10:00:00 Skal Exp $
+#
+#############################################################################
+
+include platform.inc
+
+HDIR    = -I$(PWD)/inc -I/home/zhangbangxiong/zlog-1.2.12/src
+LDIR    = -L$(PWD)/libs -L/usr/lib/ -L/home/zhangbangxiong/zlog-1.2.12/src/libzlog.a
+CFLAGS  = -Wall -g $(ARCHITECTURE) $(BUS) $(ENDIANNESS) $(FEATURES) $(SPECIFIC_CFLAGS)
+LDFLAGS = -lpthread -lm -lstdc++ 
+
+SOURCES= main.c ezxml.c arm_xml.c cjson.c post_pic.c config.c mongoose.c util.c http_post.c md5.c 
+OBJECTS=$(SOURCES:.c=.o)
+BIN=gomeipc
+
+all: $(BIN)
+
+.c.o:
+	$(CC) $(HDIR) $(CFLAGS) -c $<
+
+gomeipc: main.o ezxml.o arm_xml.o post_pic.o config.o cjson.o mongoose.o util.o http_post.o md5.o     
+	$(CC) -o $@ $? $(LDIR) $(CFLAGS) $(LDFLAGS)
+ 
+P.HONY: clean
+clean:
+	rm -f $(OBJECTS) $(BIN)

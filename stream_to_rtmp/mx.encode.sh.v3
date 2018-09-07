@@ -1,0 +1,61 @@
+#!/bin/sh
+
+STREAM_PRO=$1
+Input=$2
+protocol=$3
+Encode=$4
+Rate=$5
+Width=$6
+Height=$7
+audio=$8
+Output=$9
+Logo=${10}
+LogPath=${11}
+id=${12}
+
+echo $Rate
+echo $LogPath
+logfile=$LogPath"/"$id".log"
+echo  $InputFileName >>${logfile}
+
+if [ $Logo == "nologo" ]; then  	
+	vf_str="-vf scale=-4:${Height}"
+	in_put="-i ${Input}"
+else	
+	vf_str="-filter_complex [0:v]scale=-4:480[movie];[1:v]scale=50:50[img1];[img1]colorkey=white[img2];[movie][img2]overlay=20:20"
+	in_put="-i ${Input} -i ${Logo}"
+fi
+
+if [ $Rate == 1 ];then 
+	vcodec="-c:v libx264"
+else
+	vcodec="-c:v libx264 -b:v ${Rate}k -pix_fmt yuv420p -profile:v main -level 31 -g 125 -force_key_frames expr:gte(t,n_forced*5)"
+fi
+
+if [ $protocol == "rtsp" ];then
+	PASS1_PARAMS="-rtsp_transport tcp ${in_put} -preset veryfast -f flv -r 25 ${vf_str} ${vcodec} -an -vsync 1 -an -f flv -y ${Output}"
+else
+	PASS1_PARAMS="${in_put} -preset veryfast -r 25 ${vf_str} ${vcodec} -an -vsync 1 -f flv -y ${Output}"
+fi
+echo $PASS1_PARAMS
+
+echo "============= pass 1 params =============" >> ${logfile}
+echo ${PASS1_PARAMS} >> ${logfile}
+echo "=========================================" >> ${logfile}
+
+echo "============= pass 1 start ==============" >> ${logfile}
+echo ${STREAM_PRO} ${PASS1_PARAMS}
+${STREAM_PRO} ${PASS1_PARAMS} >> ${logfile} 2>&1
+
+ret="$?"
+
+if [ $ret != 0 ] 
+then    
+        echo -e "\ncodec_error:10001" >> ${logfile}
+        exit 1
+else    
+        echo -e "\ncodec_error:10000" >> ${logfile}
+fi
+
+echo "============= pass 1 end ================"  >> ${logfile}
+

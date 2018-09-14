@@ -27,6 +27,15 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
+#include <time.h>
+
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <sys/select.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
 
 #include "util.h"
 #include "smp_md5.h"
@@ -55,10 +64,14 @@
 #define TIME_HOUR       8
 #define TIME_MINITE     10
 
+typedef struct file_info{
+	int  sequenceno;	
+	int  fileno;
+};
+
 static volatile char STOP = 0;
 static volatile char STOP_OK = 0;
 
-char g_file_list[MAX_FILE_NUM][64];
 char local_ip[128] = "0.0.0.0";
 config_t  _config;
 
@@ -194,20 +207,80 @@ static int customTs(const struct dirent *pDir)
     return 0;
 }
 
+static int recorddir(const struct dirent *pDir)                                                                                                                                  
+{
+    //printf("d_type = %d %s\n", pDir->d_type, pDir->d_name);
+    //if ((NULL != strstr(pDir->d_name, "2018")))
+    if (pDir->d_type != 8 && (strstr(pDir->d_name, ".") == NULL && strstr(pDir->d_name, "..") == NULL))
+        return 1;
+
+    return 0;
+}
+
+void sort(struct file_info a[], int len)
+{
+	int i = 0;
+	int j = 0;
+	for(i = 0; i < len - 1; i++)
+        {
+            for(j = 0; j < len - 1 -i; j++)// j开始等于0，
+            {
+                if(a[j].fileno > a[j + 1].fileno)
+                {
+		    int temp = 0;
+
+                    temp    = a[j].fileno;
+                    a[j].fileno = a[j + 1].fileno;
+                    a[j + 1].fileno = temp;
+
+                    temp    = a[j].sequenceno;
+                    a[j].sequenceno = a[j + 1].sequenceno;
+                    a[j + 1].sequenceno = temp;
+                }
+            }
+        }
+
+}
+
 static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m3u8)
 {
+	struct file_info g_file_info[MAX_FILE_NUM];
+	char g_file_list[MAX_FILE_NUM][64];
         int i = 0;
+        int j = 0;
         int n = 0;
         int num = 0;
         int sum = 0;
+        int num_files = 0;
 	int start_file_num = 0;
 	int end_file_num = 0;
         char file[128] = {0};
         struct dirent **namelist = NULL;
+        struct dirent **namesub  = NULL;
 
-	char channel_path[512] = {0};
-   	char m3u8_file[512] 	= {0};    
-	char tmp[512] 		= {0};
+	char channel_path[128] = {0};
+   	char m3u8_file[512]    = {0};    
+	char tmp[512]          = {0};
+	char dir[256]          = {0};
+
+	char start_hour[64]    = {0};
+	char end_hour[64]      = {0};
+
+	printf("start = %s\n", start);
+        struct tm* local; //本地时间   
+	int64_t s = atoi(start);
+	printf("s = %lld", s);
+	int64_t e = atoi(end);
+        local = localtime(&s); //转为本地时间
+	sprintf(start_hour, "%d%02d%02d%02d", local->tm_year+1900, local->tm_mon+1, local->tm_mday, local->tm_hour);
+	int sh = atoi(start_hour);
+	printf("sh = %d\n", sh);
+        local = localtime(&e); //转为本地时间
+	sprintf(end_hour, "%d%02d%02d%02d", local->tm_year+1900, local->tm_mon+1, local->tm_mday, local->tm_hour);
+	int eh = atoi(end_hour);
+	printf("eh = %d\n", sh);
+
+	printf("%s %s\n", start_hour, end_hour);
 	sprintf(channel_path,"%s/%s", path, id);
 	snprintf(m3u8_file, 512, "%s/%s_%s.m3u8", channel_path, start, end);    
 	if (access(m3u8_file, F_OK) == 0)
@@ -219,55 +292,66 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 	}
 
 	sprintf(channel_path,"%s/%s", path, id);
-        num = scandir(channel_path, &namelist, customTs, alphasort);
+        num = scandir(channel_path, &namelist, recorddir, alphasort);
+	printf("num  = %d\n", num);
         if (num < 0)
         {
                 return -1;
         }
 
-        for(i = 0; i < num; i++)
-        {
-                n = sprintf(file, "%s/%s", channel_path, namelist[i]->d_name);
-               	file[n] = '\0';
-        	struct stat buf;
-        	int  result = 0;
+	for (j = 0; j < num; j++)
+	{
+		if (atoi(namelist[j]->d_name) < sh || atoi(namelist[j]->d_name) > eh)
+			continue;
+		n = sprintf(dir, "%s/%s", channel_path, namelist[j]->d_name);
+		dir[n] = '\0';
+		num_files = scandir(dir, &namesub, customTs, alphasort);
+		if (num_files < 0)
+		{
+			continue;
+		}
+		for(i = 0; i < num_files; i++)
+		{
+			struct stat buf;
+			int  result = 0;
 
-        	result = stat(file, &buf);
-		if ( result != 0 )
-        	{
-                	return -2;
-        	}
-        	else
-        	{
-			if (buf.st_mtime >= atoi(start))
+			n = sprintf(file, "%s/%s", dir, namesub[i]->d_name);
+			result = stat(file, &buf);
+			if ( result != 0 )
 			{
-				char tmp[8] = {0};
-				int  file_num = 0;
-				memcpy(tmp, namelist[i]->d_name, strchr(namelist[i]->d_name, '.') - namelist[i]->d_name);
-				file_num = atoi(tmp);
-				if (start_file_num == 0)
-					start_file_num = file_num;
-				else if (file_num < start_file_num)
-					start_file_num = file_num;
+				return -2;
 			}
-
-			if (buf.st_mtime <= atoi(end))
+			else
 			{
-				char tmp[8] = {0};
-				int  file_num = 0;
-				memcpy(tmp, namelist[i]->d_name, strchr(namelist[i]->d_name, '.') - namelist[i]->d_name);
-				file_num = atoi(tmp);
-				if (end_file_num == 0)
-					end_file_num = file_num;
-				else if (file_num > end_file_num)
-					end_file_num = file_num;
+				if (buf.st_mtime >= atoi(start) && buf.st_mtime <= atoi(end))
+				{
+					char tmp[8] = {0};
+                                	memcpy(tmp, namesub[i]->d_name, strchr(namesub[i]->d_name, '.') - namesub[i]->d_name);
+					g_file_info[sum].fileno = atoi(tmp);
+					g_file_info[sum].sequenceno = sum;
+					memset(g_file_list[sum], 0, 64);
+					sprintf(g_file_list[sum], "%s/%s", namelist[j]->d_name, namesub[i]->d_name);
+					sum ++;
+					if (sum >= MAX_FILE_NUM)
+						break;
+				}
 			}
 		}
-        }
 
-	sum  = end_file_num - start_file_num;
-	printf("start_file_num = %d, end_file_num = %d\n", start_file_num, end_file_num);
-	int  loop = 0;
+		while (num_files--)                                                                                                                                                            
+		{    
+			free(namesub[num_files]);
+		}    
+		free(namesub);
+	}
+
+        while (num--)                                                                                                                                                            
+        {    
+                free(namelist[num]);
+        }    
+        free(namelist);
+	sort(g_file_info, sum);
+
 	FILE *fp = NULL;    
 	snprintf(m3u8_file, 512, "%s/%s_%s.m3u8", channel_path, start, end);    
 	fp = fopen(m3u8_file, "wb");    
@@ -276,29 +360,17 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 			"#EXT-X-VERSION:3\n"                     
 			"#EXT-X-TARGETDURATION:5\n");    
 	fwrite(tmp, strlen(tmp), 1, fp);    
-	for(loop = start_file_num; loop <= end_file_num; loop++)    
+	for (i = 0; i < sum;i++)
 	{        
-		char tmp_name[512] = {0};
-		sprintf(tmp_name, "%s/%d.ts", channel_path, loop);
-		//printf("loop = %d, tmp_name = %s\n", loop, tmp_name);
-		if (access(tmp_name, F_OK) == 0)
-		{
-			//int time_len = 0;
-        		//char arg[1024] = {0};
-        		//sprintf(arg, "mediainfo --Inform=\"Video;%Duration/String3%\" %s", tmp_name);
-     	   		//run_mediainfo(arg, &time_len);
-			memset(tmp, 0, sizeof(tmp));        
-			//snprintf(tmp, sizeof(tmp),"#EXTINF:%.3f,\n%d.ts\n", (float)time_len/1000, loop);                    
-			snprintf(tmp, sizeof(tmp),"#EXT-X-DISCONTINUITY\n#EXTINF:%.3f,\n%d.ts\n", 5.0, loop);                    
-			fwrite(tmp, strlen(tmp), 1, fp);    
-		}
+		memset(tmp, 0, sizeof(tmp));        
+		snprintf(tmp, sizeof(tmp),"#EXT-X-DISCONTINUITY\n#EXTINF:%.3f,\n%s\n", 5.0, g_file_list[g_file_info[i].sequenceno]);                    
+		fwrite(tmp, strlen(tmp), 1, fp);    
 	}    
 	memset(tmp, 0, sizeof(tmp));    
 	snprintf(tmp, sizeof(tmp), "#EXT-X-ENDLIST\n");    
 	fwrite(tmp, strlen(tmp), 1, fp);    
 	fclose(fp);
 	sprintf(m3u8, "http://%s:%d/live/%s/%s_%s.m3u8", _config.store_server_ip, _config.store_m3u8_port, id, start, end);
-	printf("11 start_file_num = %d, sum = %d %s\n", start_file_num, sum,m3u8);
 
         return sum;
 }
@@ -344,12 +416,13 @@ static int report_file_info(char *filepath, char *camera_id)
         printf("tmp = %s\n", tmp);
         if (tmp[strlen(tmp) - 1] == '/')
         {
-                tmp[strlen(tmp) - 1] = '\0';
+               tmp[strlen(tmp) - 1] = '\0';
         }
+
         char *q = strrchr(tmp, '/');
         if (q != NULL)
         {
-                memcpy(filename, q + 1, strlen(tmp) - (q - tmp));
+               memcpy(filename, q + 1, strlen(tmp) - (q - tmp));
         }
 
         if (access(filepath, F_OK) == -1)
@@ -621,8 +694,6 @@ int main(int argc, char **argv)
 	sigaction(SIGPIPE, &sa, 0 );
 
         configure(&_config);
-
-	return 0;
 
   	struct mg_mgr mgr;
   	struct mg_connection *nc;

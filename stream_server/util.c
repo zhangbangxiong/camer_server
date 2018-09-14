@@ -553,5 +553,3 @@ char *read_mysql(int server_id, const char *ip)
         return str;
 }
 
-
-

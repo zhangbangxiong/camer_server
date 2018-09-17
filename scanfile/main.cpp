@@ -63,6 +63,35 @@ vector<string> v_file_name;
 int save_time = 66400;
 config_t  _config;
 
+
+char *my_strrstr(const char *dst, const char *src)
+{
+	assert(dst);
+	assert(src);
+	const char *pdst = dst;
+	const char *psrc = src;
+	char *right= NULL;
+	while (*dst)
+	{
+		while (*pdst == *psrc)                      
+		{
+			if (*pdst== '\0')                     //如果*pdst为‘\0'则已经找到最后一个
+				return right=(char *)dst;
+			else
+			{
+				pdst++;
+				psrc++;
+			}
+		}
+		if (*psrc == '\0')                        //找到一个，但不确定是不是最后一个
+			right = (char *)dst;
+		pdst = ++dst;
+		psrc = src;
+	}
+	return right;
+}
+
+
 long long _gettime_s(void)       //unit: s
 {
     struct timeval tv;
@@ -99,6 +128,97 @@ int regex_match(const char *buffer, const char *pattern)
     	}  
 }  
 
+int check_file(const char *file)
+{
+	int64_t now_t    = 0; 
+	int64_t file_t   = 0; 
+	char tmp[64]     = {0};
+        struct stat buf;
+	int dif_time     = 0;
+
+        if (access(file, F_OK) == -1)
+        {
+               dzlog_info("file %s is not exist", file);
+               return -1;
+	}
+
+       	int ret = stat(file, &buf);  
+       	if (ret != 0)  
+		return -1;
+
+        if(S_ISDIR(buf.st_mode))
+	{
+		memcpy(tmp, my_strrstr(file, "/") + 1, strlen(file) - (my_strrstr(file, "/") - file));
+		int year = 0;
+		int mon  = 0;
+		int day  = 0;
+		int hour = 0;
+		sscanf(tmp, "%04d%02d%02d%02d", &year, &mon, &day, &hour);
+		struct tm f_t;	
+		f_t.tm_year = year - 1900;
+		f_t.tm_mon  = mon - 1;
+		f_t.tm_mday = day;
+		f_t.tm_hour = hour;
+		f_t.tm_min  = 0;
+		f_t.tm_sec  = 0;
+		file_t = mktime(&f_t);
+
+		now_t = _gettime_s();
+		dif_time = now_t - file_t;
+	}
+        else if(S_ISREG(buf.st_mode)) 
+	{
+                dif_time = _gettime_s() - buf.st_mtime;
+	}
+
+	return dif_time;
+}
+
+int mv_file(const char *file)
+{
+        struct stat buf;
+        int  result = 0;
+        long long start_time = 0;
+	char name[32]        = {0};
+	char lpath[64]       = {0};
+	char spath[128]      = {0};
+
+        if (access(file, F_OK) == -1)
+        {
+               dzlog_info("file %s is not exist", file);
+               return -1;
+	}
+
+	memcpy(lpath, file, strrchr(file, '/') - file);
+	strcpy(name, strrchr(file, '/') + 1);
+	
+        result = stat(file, &buf);
+        if ( result != 0 )
+        {
+                return -2;
+        }
+        else
+        {
+		start_time = buf.st_atime;
+		int64_t sec = start_time;
+                int64_t now_time = _gettime_s();
+		if (now_time - sec < 30)
+			return 0;
+		tm* local; //本地时间   
+		local = localtime(&sec); //转为本地时间
+		sprintf(spath, "%s/%d%02d%02d%02d", lpath, local->tm_year+1900, local->tm_mon+1, local->tm_mday, local->tm_hour);
+		printf("spath = %s\n", spath);
+        	if (access(spath, F_OK) == -1)
+        	{
+			mkdir(spath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); 
+		}
+		char arg[1024] = {0};
+		sprintf(arg, "mv %s %s", file, spath);
+		system(arg);
+	}
+
+	return 0;
+}
 int scan_dirpath(char *path, char *pattern)
 {  
     	char file_path[512] = {0};  
@@ -109,6 +229,12 @@ int scan_dirpath(char *path, char *pattern)
     	struct stat buf;  
     	int i = 0, j = 0;
   
+	int64_t sec = _gettime_s();
+	tm* local; //本地时间   
+	local = localtime(&sec); //转为本地时间
+	char year[8] = {0};
+	sprintf(year, "%d", local->tm_year+1900);
+
     	if ((dir = opendir(path)) == NULL) 
 	{  
         	perror("opendir failed!");  
@@ -129,7 +255,6 @@ int scan_dirpath(char *path, char *pattern)
             		if (ret != 0)  
 				continue;
 
-			printf("00 file_path = %s\n", file_path);
             		if(S_ISREG(buf.st_mode)) 
 			{        
                 		for(i = 0; i < (int)strlen(file_path); i++) 
@@ -143,15 +268,25 @@ int scan_dirpath(char *path, char *pattern)
                     			file[j++] = file_path[i];  
                 		}	  
 
-                		if (regex_match(file, pattern) == 0) 
+				
+                		if (regex_match(file, pattern) == 0 && strstr(file_path, "record")) 
+					v_file_path.push_back(file_path); 
+                		else if (regex_match(file, pattern) == 0 && strstr(file_path, "live")) 
 				{ 
-                    			v_file_path.push_back(file_path);  
+					mv_file(file_path);
                 		}	  
             		}  
-            		else if(S_ISDIR(buf.st_mode)) 
-			{     
-                		scan_dirpath(file_path, pattern);  
-            		}  
+            		else if(S_ISDIR(buf.st_mode))
+			{
+				if (strstr(file_path, year) == NULL) 
+				{     
+                			scan_dirpath(file_path, pattern);  
+            			}  
+                    		else
+				{
+					v_file_path.push_back(file_path); 
+				} 
+			}
         	}  
     	}
 	closedir(dir);  
@@ -254,38 +389,6 @@ int send_data(char *url, char *data)
 
 }
 
-int check_file(const char *file)
-{
-        struct stat buf;
-        int  result = 0;
-        long long now_time   = 0;
-        long long start_time = 0;
-        long long end_time   = 0;
-	int  dif_time	     = 0;
-
-        if (access(file, F_OK) == -1)
-        {
-               dzlog_info("file %s is not exist", file);
-               return -1;
-	}
-	
-        result = stat(file, &buf);
-        if ( result != 0 )
-        {
-                return -2;
-        }
-        else
-        {
-		start_time = buf.st_atime;
-		end_time   = buf.st_mtime;
-                now_time = _gettime_s();
-                dif_time = _gettime_s() - buf.st_mtime;
-		//dzlog_info("file = %s, start_time = %lld, end_time = %lld, now_time = %lld\n", file, start_time, end_time, now_time);
-	}
-
-	return dif_time;
-}
-
 int report_file_info(char *filepath, char *filename)
 {
 	char curl[] = "http://192.168.102.248:80/api/record/create";
@@ -373,6 +476,18 @@ int get_save_time()
         return 0;
 }
 
+int remove_file(const char *file)
+{
+	char arg[1024] = {0};
+	sprintf(arg, "rm -rf %s", file);
+	system(arg);
+
+        if (access(file, F_OK) == -1)
+		return 0;
+	else
+		return 1;
+}
+
 int main(int argc, char **argv)  
 {  
 	char pattern[32] = ".*";
@@ -408,10 +523,9 @@ int main(int argc, char **argv)
 			int  res = check_file(v_file_path[i].c_str());
 			if (res >= save_time)
 			{
-				if (remove(v_file_path[i].c_str()) == 0)
+				if (remove_file(v_file_path[i].c_str()) == 0)
 				{
 					dzlog_info("del the file:%s success", v_file_path[i].c_str());
-					continue;
 				}
 				else
 				{

@@ -29,18 +29,18 @@
 		- ./stream_server 
 	- 相关配置文件
 	    - etc.xml 需要在此配置文件中配置下列项：
-			<server_ip>192.168.102.242</server_ip>#服务ip地址
-			<server_port>18080</server_port>#服务stream_server所需要的端口 ！！server_ip server_port为一对，主回看服务器这里需配置外网ip与外网端口
-			<store_server_ip>27.223.92.102</store_server_ip>#回看服务器ip地址，外网ip
-			<store_m3u8_port>6060</store_m3u8_port>#回看服务器hls播放端口，外网端口
-			<store_download_port>7070</store_download_port>#存储服务器文件下载端口，外网端口
-			<stream_server_ip>27.223.92.102</stream_server_ip>#web服务器地址，外网ip
-			<stream_server_http_port>4180</stream_server_http_port>#web服务器端口，外网端口
-			<mysql_ip>27.223.92.102</mysql_ip>#数据库地址，外网ip
-			<mysql_port>13306</mysql_port>#数据库端口，外网端口
-			<mysql_user>root</mysql_user>#数据库登陆用户名
-			<mysql_passwd>RbF2017_$</mysql_passwd>#数据库登陆密码
-			<m3u8_path>/home/live</m3u8_path>#hls本地目录
+			- <server_ip>192.168.102.242</server_ip>#服务ip地址
+			- <server_port>18080</server_port>#服务stream_server所需要的端口 ！！server_ip server_port为一对，主回看服务器这里需配置外网ip与外网端口
+			- <store_server_ip>27.223.92.102</store_server_ip>#回看服务器ip地址，外网ip
+			- <store_m3u8_port>6060</store_m3u8_port>#回看服务器hls播放端口，外网端口
+			- <store_download_port>7070</store_download_port>#存储服务器文件下载端口，外网端口
+			- <stream_server_ip>27.223.92.102</stream_server_ip>#web服务器地址，外网ip
+			- <stream_server_http_port>4180</stream_server_http_port>#web服务器端口，外网端口
+			- <mysql_ip>27.223.92.102</mysql_ip>#数据库地址，外网ip
+			- <mysql_port>13306</mysql_port>#数据库端口，外网端口
+			- <mysql_user>root</mysql_user>#数据库登陆用户名
+			- <mysql_passwd>RbF2017_$</mysql_passwd>#数据库登陆密码
+			- <m3u8_path>/home/live</m3u8_path>#hls本地目录
 		- server.conf 程序日志配置文件
 	
 3	stream_to_rtmp
@@ -53,14 +53,14 @@
 		- ./stream_to_rtmp
 	- 相关配置文件
 	    - etc.xml 需要在此配置文件中配置下列项：
-			<server_id>1</server_id>#推流服务器id
-			<stream_server_ip>27.223.92.102</stream_server_ip>#主流媒体服务器外网ip地址
-			<stream_server_http_port>4180</stream_server_http_port>#主流媒体服务器http外网端口
-			<server_ip>192.168.102.242</server_ip>
-			<server_port>18080</server_port>
-			<sh_exec_dir>./mx.encode.sh.v3</sh_exec_dir>
-			<stream_exec_dir>./ffmpeg</stream_exec_dir>
-			<kill_sh_dir>./killproc.sh</kill_sh_dir>
-			<logo_path>/www/bpls/public</logo_path> 
-			<log_path>./log</log_path> 
+			- <server_id>1</server_id>#推流服务器id
+			- <stream_server_ip>27.223.92.102</stream_server_ip>#主流媒体服务器外网ip地址
+			- <stream_server_http_port>4180</stream_server_http_port>#主流媒体服务器http外网端口
+			- <server_ip>192.168.102.242</server_ip>
+			- <server_port>18080</server_port>
+			- <sh_exec_dir>./mx.encode.sh.v3</sh_exec_dir>
+			- <stream_exec_dir>./ffmpeg</stream_exec_dir>
+			- <kill_sh_dir>./killproc.sh</kill_sh_dir>
+			- <logo_path>/www/bpls/public</logo_path> 
+			- <log_path>./log</log_path> 
 		- scan_log.conf 程序日志配置文件

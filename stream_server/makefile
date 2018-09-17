@@ -32,7 +32,7 @@ DEFINES = -D$(PLATFORM)
 CXXFLAGS = $(DEFINES) -g -Wall -pipe -O3 -D_GNU_SOURCE -D__USE_XOPEN -DMG_ENABLE_THREADS $(ARCHITECTURE) $(BUS) $(ENDIANNESS) $(FEATURES) $(SPECIFIC_CFLAGS)
 
 TARGET = stream_server 
-OBJECTS= main.o ezxml.o arm_xml.o util.o config.o cjson.o mongoose.o md5.o getpath.o  
+OBJECTS= main.o ezxml.o arm_xml.o util.o config.o cjson.o mongoose.o md5.o getpath.o http_post.o
 
 all:$(OBJECTS) 
 	$(CXX) -o $(TARGET) $(OBJECTS) $(LDFLAGS)

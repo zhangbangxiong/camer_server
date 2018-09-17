@@ -11,7 +11,6 @@
 	<mysql_passwd>RbF2017_$</mysql_passwd>
 	<m3u8_path>/home/live</m3u8_path>
 	<vod_servers>
-		<vod_server port="3306">192.168.1.248</vod_server>
-		<vod_server port="3307">192.168.1.247</vod_server>
+		<vod_server port="18080">192.168.102.242</vod_server>
 	</vod_servers>
 </configuration>

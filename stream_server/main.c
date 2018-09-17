@@ -45,6 +45,7 @@
 #include "cjson.h"
 #include "mongoose.h"
 #include "zlog.h"
+#include "http_post.h"
 
 #define API_CSTATUS 		"/cstatus"
 #define API_CHANGE_CONFIG       "/cconfig"
@@ -242,6 +243,28 @@ void sort(struct file_info a[], int len)
 
 }
 
+static int get_m3u8_from_other_server(char *id,  char *start, char *end, char *result)
+{
+	printf("get_m3u8_from_other_server id = %s start = %s\n", id, start);
+	int i = 0;
+	int r = 0;
+	for (i = 0;i<_config.vod_server_nums;i++)
+	{
+		char data[64] = {0};
+		char res[512] = {0};
+		sprintf(data, "channel_id=%s&start_time=%s&end_time=%s", id, start, end);
+		r = send_msg(_config.vs[i].ip, _config.vs[i].port, data, res);
+		if (r > 0 && strstr(res, "m3u8"))
+		{
+			memcpy(result, res, strlen(res));
+			r = 100;
+			break;
+		}
+	}
+
+	return r;
+}
+
 static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m3u8)
 {
 	struct file_info g_file_info[MAX_FILE_NUM];
@@ -338,18 +361,23 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 			}
 		}
 
-		while (num_files--)                                                                                                                                                            
-		{    
-			free(namesub[num_files]);
+		while (num_files--)
+		{
+			if (namesub[num_files])
+				free(namesub[num_files]);
 		}    
-		free(namesub);
+		if (namesub)
+			free(namesub);
 	}
 
         while (num--)                                                                                                                                                            
         {    
-                free(namelist[num]);
+		if (namelist[num])
+                	free(namelist[num]);
         }    
-        free(namelist);
+	if (namelist)
+        	free(namelist);
+
 	sort(g_file_info, sum);
 
 	FILE *fp = NULL;    
@@ -358,12 +386,12 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 	snprintf(tmp, sizeof(tmp),  
 			"#EXTM3U\n"                     
 			"#EXT-X-VERSION:3\n"                     
-			"#EXT-X-TARGETDURATION:5\n");    
+			"#EXT-X-TARGETDURATION:10\n");    
 	fwrite(tmp, strlen(tmp), 1, fp);    
 	for (i = 0; i < sum;i++)
 	{        
 		memset(tmp, 0, sizeof(tmp));        
-		snprintf(tmp, sizeof(tmp),"#EXT-X-DISCONTINUITY\n#EXTINF:%.3f,\n%s\n", 5.0, g_file_list[g_file_info[i].sequenceno]);                    
+		snprintf(tmp, sizeof(tmp),"#EXT-X-DISCONTINUITY\n#EXTINF:%.3f,\n%s\n", 10.0, g_file_list[g_file_info[i].sequenceno]);                    
 		fwrite(tmp, strlen(tmp), 1, fp);    
 	}    
 	memset(tmp, 0, sizeof(tmp));    
@@ -413,11 +441,12 @@ static int report_file_info(char *filepath, char *camera_id)
         char filename[64] = {0};
 
         memcpy(tmp, filepath, strlen(filepath));
-        printf("tmp = %s\n", tmp);
+        printf("00 tmp = %s\n", tmp);
         if (tmp[strlen(tmp) - 1] == '/')
         {
                tmp[strlen(tmp) - 1] = '\0';
         }
+        printf("01 tmp = %s\n", tmp);
 
         char *q = strrchr(tmp, '/');
         if (q != NULL)
@@ -425,6 +454,7 @@ static int report_file_info(char *filepath, char *camera_id)
                memcpy(filename, q + 1, strlen(tmp) - (q - tmp));
         }
 
+        printf("02 tmp = %s\n", tmp);
         if (access(filepath, F_OK) == -1)
         {
                dzlog_info("file %s is not exist", filepath);
@@ -433,7 +463,13 @@ static int report_file_info(char *filepath, char *camera_id)
 
 	sprintf(curl, "http://%s:%d/api/record/create", _config.stream_server_ip, _config.stream_server_http_port);
 	char tmp_time[64] = {0};
-	memcpy(tmp_time, strchr(filename, '_') + 1, strchr(filename, '.') - strchr(filename, '_') - 1);
+	char *p = strchr(filename, '_'); 
+	if (p == NULL)
+		return -1;
+	q = strchr(filename, '.'); 
+	if (q == NULL)
+		return -1;
+	memcpy(tmp_time, p + 1, q - p - 1);
 	printf("tmp_time = %s\n", tmp_time);
         struct tm tm;
         strptime(tmp_time, "%Y-%m-%d-%H-%M-%S", &tm);
@@ -487,12 +523,12 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 		else if (!strncmp(hm->uri.p, API_VOD_M3U8, strlen(API_VOD_M3U8)))		
 		{
 			dzlog_info("---- get vod m3u8 ----");
-			char msg[128]   = {0};	
+			char msg[1280]  = {0};	
                 	int  result 	= 0;
                 	char id[24] 	= {0};
                 	char start[24] 	= {0};
                 	char end[24] 	= {0};
-			char m3u8[10240]= {0};
+			char m3u8[1024]= {0};
 
                       	mg_get_http_var(&hm->query_string, "channel_id", id, 24);
                       	mg_get_http_var(&hm->query_string, "start_time", start, 24);
@@ -509,16 +545,28 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 			}
 
                 	result = m3u8_get_files(_config.m3u8_path, id, start, end, m3u8);
+			printf("m3u8_get_files res = %d\n", result);
                 	if(result <= 0)
                 	{
-				dzlog_info("vod m3u8 failed");
-				sprintf(msg, "{\"result\": failed}");
-				mg_reply_messge(conn, "failed");
-                        	return;
+				int res = get_m3u8_from_other_server(id, start, end, msg);
+				if (res == 100)
+				{
+					printf("m3u8_get_files msg = %s\n", msg);
+					mg_reply_messge(conn, msg);
+				}
+				else
+				{
+					dzlog_info("vod m3u8 failed");
+					sprintf(msg, "{\"result\": failed}");
+					mg_reply_messge(conn, "failed");
+				}
                 	}	
-			dzlog_info("m3u8 = %s", m3u8);
-			sprintf(msg, "{\"result\": \"%s\"}", m3u8);
-			mg_reply_messge(conn, msg);
+			else
+			{
+				dzlog_info("m3u8 = %s", m3u8);
+				sprintf(msg, "{\"result\": \"%s\"}", m3u8);
+				mg_reply_messge(conn, msg);
+			}
 
 		}
 		else if (!strncmp(hm->uri.p, API_RECORD, strlen(API_RECORD)))		
@@ -689,7 +737,7 @@ int main(int argc, char **argv)
 	}    
 	dzlog_info("starting...");
 
-	//damon();
+	damon();
 	sa.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sa, 0 );
 

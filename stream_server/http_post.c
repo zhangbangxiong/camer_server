@@ -29,230 +29,69 @@
 
 #define   RCVBUFLEN  4096
 
-extern config_t _config;
+#define HTTP_HEADER_LEN         1024
 
-static int sdk_resolve_inet(char *name, int port, struct sockinfo *si)
+int set_nonblock(int sd)
 {
-	int status;
-	struct addrinfo *ai, *cai; /* head and current addrinfo */
-	struct addrinfo hints;
-	char *node, service[8];
-	int found;
+    int flags;
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_flags = AI_NUMERICSERV;
-	hints.ai_family = AF_INET;     /* AF_INET or AF_INET6 */
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 0;
-	hints.ai_addrlen = 0;
-	hints.ai_addr = NULL;
-	hints.ai_canonname = NULL;
-
-	if (name != NULL) 
-	{
-		node = name;
-	} 
-	else 
-	{
-		node = NULL;
-		hints.ai_flags |= AI_PASSIVE;
-	}
-
-	snprintf(service, 8, "%d", port);
-
-	status = getaddrinfo(node, service, &hints, &ai);
-	if (status < 0) 
-	{
-		return -1;
-	}
-	for (cai = ai, found = 0; cai != NULL; cai = cai->ai_next) 
-	{
-		si->family = cai->ai_family;
-		si->addrlen = cai->ai_addrlen;
-		memcpy(&si->addr, cai->ai_addr, si->addrlen);
-		found = 1;
-		break;
-	}
-
-	freeaddrinfo(ai);
-
-	return !found ? -1 : 0;
+    flags = fcntl(sd, F_GETFL, 0);
+    if (flags < 0) {
+        return flags;
+    }
+    return fcntl(sd, F_SETFL, flags | O_NONBLOCK);
 }
 
-/*
- *  Resolve a hostname and service by translating it to socket address and
- *  return it in si
- *  
- *  This routine is reentrant
- */
-int sdk_resolve(char *name, int port, struct sockinfo *si)
+static int _connect(char *ip, int port)
 {
-	return sdk_resolve_inet(name, port, si);
+    struct sockaddr_in addr;
+    int skt;
+
+    skt = socket(AF_INET, SOCK_STREAM, 0);
+
+	printf("ip = %s\n", ip);
+    memset(&addr, 0, sizeof(addr) );
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr(ip);
+    addr.sin_port = htons(port);
+	printf("port = %d\n", port);
+
+    connect(skt, (struct sockaddr *)&addr, sizeof(addr));
+    return skt;
 }
 
-int _connect()
+int send_msg(char *ip, int port, char *data, char *res)
 {
-	struct sockinfo sock;
-	struct timeval tm;
+	char mess[256] = {0};
+	int val = 0;
+	int mess_len = 0;
+	char res1[1024] = {0};
+	int skt = _connect(ip, port);
+	mess_len = sprintf(mess, "POST /getm3u8?%s HTTP/1.0\r\n", data);
+	mess_len += sprintf(mess + mess_len, "Host:%s\r\n", ip);
+	mess_len += sprintf(mess + mess_len, "Content-Type:application/x-www-form-urlencoded\r\n");
+	mess_len += sprintf(mess + mess_len, "Content-Length:%d\r\n\r\n", (int)strlen(data));
+	mess_len += sprintf(mess + mess_len, "%s", data);
 
-	int m_sock = 0;
-	int times  = 0;
-	int ret    = 0;
-	int port   = 0;
-
-	port = atoi(80);
-
-	//printf("_config.xreport_server = %s, port = %d\n", _config.xreport_server, port);
-	//sdk_resolve(_config.xreport_server, port, &sock);
-	m_sock = socket(AF_INET, SOCK_STREAM, 0);
-
-	tm.tv_sec = 2;
-	tm.tv_usec = 0;
-	setsockopt(m_sock, SOL_SOCKET, SO_SNDTIMEO, &tm, sizeof(tm));
-	setsockopt(m_sock, SOL_SOCKET, SO_RCVTIMEO, &tm, sizeof(tm));
-
-TODO:
-	ret = connect(m_sock, (struct sockaddr *)&sock.addr, sock.addrlen);
-	if (ret < 0)
+	val = send(skt, mess, mess_len, 0);
+	if (val < 0)
 	{
-		if (times < 3)
-		{
-			dzlog_info("relink upload server ...");
-			times++;
-			sleep(1);
-			goto TODO;
-		}
-		else
-		{
-			return -1;
-		}
-	}
-	
-	return m_sock;
-}
-
-int ipc_send(int m_sock, char* buf, int len)
-{
-	fd_set writefds;
-	struct timeval tm;
-	int ret, val, total = 0;
-
-	tm.tv_sec = 3;
-	tm.tv_usec = 0;
-
-	while (1)
-	{
-		FD_ZERO(&writefds);
-		FD_SET(m_sock, &writefds);
-
-		val = select(m_sock + 1, NULL, &writefds, NULL, &tm);
-		if (val < 0)
-		{
-			return -1;
-		}
-		if (val == 0)
-		{
-			continue;
-		}
-
-		if (FD_ISSET(m_sock, &writefds))
-		{
-			ret = send(m_sock, buf+total, len-total, 0);
-			if (ret == 0)
-			{
-				return -1;
-			}
-			else if (ret < 0)
-			{
-				if (errno == EINTR)
-				{
-					continue;
-				}
-				if ((errno != EAGAIN) || (errno != EWOULDBLOCK))
-				{
-					return -1;
-				}
-			}
-			else
-			{
-				total += ret;
-				if (total == len)
-				{
-					return 0;
-				}
-			}
-		}
-
-	}
-	return 0;
-}
-
-int _send(const char* content)
-{
-	//printf("send data start ..\ncontent=%s\n",content);
-	int val;
-	int m_sock = 0;
-	int sended = 0;
-	char buf[RCVBUFLEN] = {0};
-	int len = strlen(content);
-	
-	if (len == 0)
-	{
-		return 1;
+		goto END;
 	}
 
-	m_sock = _connect();
-	if(m_sock <= 0)
-		return 1;	
-RESEND:
-	sended = 0;	
-	while(sended < len)
+	val = recv(skt, res1, sizeof(res1), 0);
+	if (val < 0)
 	{
-		val = send(m_sock, content+sended, len - sended, 0);
-		if (val < 0)
-		{	
-			dzlog_info("send msg error!");
-			sleep(1);
-			m_sock = _connect();
-			goto RESEND;
-		}
-		sended += val;
-	}
-
-RERECV:
-	val = recv(m_sock, buf, RCVBUFLEN, 0);
-	
-	if (val > 0)
-	{
-		//printf("send end!\nrecv buf = %s\n", buf);	
-
-		if(strstr(buf, "204") != NULL)
-		{
-			dzlog_debug("recv ok");
-			return 0;
-		}
-		else 
-		{
-			dzlog_debug("recv failed");
-			return 1;
-		}
-
+		goto END;
 	}
 	else
 	{
-		if ((val < 0) && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR))
-		{
-			//printf("re recv\n");
-			goto RERECV;
-		}
-	}	
-	return 0;
-}
-
-int send_msg(void *data)
-{
-	//printf("***** send_msg\n");
-
-	return 0;
+		if (strstr(res1, "result"))
+			strcpy(res, strstr(res1, "\r\n\r\n")+4);
+	}
+	
+END:
+	close (skt);
+	return val;
 }
 

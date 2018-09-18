@@ -25,8 +25,8 @@ ifeq ($(findstring Linux,$(OS)),Linux)
 endif
 
 LIBS += 
-LDFLAGS += -L$(PWD)/libs -L/usr/lib64 -lzlog -lpthread -lm -lmysqlclient -ldl -lz -lcurl
-INCLUDE += -I$(PWD)/inc 
+LDFLAGS += -L$(PWD)/libs -L/usr/lib64 -lzlog -lpthread -lm -lmysqlclient -ldl -lz -lcurl -lavformat
+INCLUDE += -I$(PWD)/inc -I/usr/local/include 
 DEFINES = -D$(PLATFORM)
 
 CXXFLAGS = $(DEFINES) -g -Wall -pipe -O3 -D_GNU_SOURCE -D__USE_XOPEN -DMG_ENABLE_THREADS $(ARCHITECTURE) $(BUS) $(ENDIANNESS) $(FEATURES) $(SPECIFIC_CFLAGS)

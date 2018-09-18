@@ -485,8 +485,12 @@ static int report_file_info(char *filepath, char *camera_id)
         {
                 dzlog_info("file name    = %s",filename);
                 dzlog_info("camera_id    = %s",camera_id);
+		int duration = get_file_duration(filepath);
                 start_time = pp;
-                end_time   = buf.st_mtime;
+		if (duration > 0)
+			end_time = start_time + duration;
+		else
+                	end_time = buf.st_mtime;
 		int id = atoi(camera_id) - 10000;
  		if (id > 0 && start_time > 0 && end_time > 0 && (end_time - start_time) > 120)
 		{
@@ -528,7 +532,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
                 	char id[24] 	= {0};
                 	char start[24] 	= {0};
                 	char end[24] 	= {0};
-			char m3u8[1024]= {0};
+			char m3u8[1024] = {0};
 
                       	mg_get_http_var(&hm->query_string, "channel_id", id, 24);
                       	mg_get_http_var(&hm->query_string, "start_time", start, 24);

@@ -46,6 +46,7 @@
 #include "http_post.h"
 #include "copyfiles.h"
 #include "zlog.h"
+#include "libavformat/avformat.h"
 
 #define TAG ","
 
@@ -551,5 +552,36 @@ char *read_mysql(int server_id, const char *ip)
         mysql_close(g_conn); // 关闭链接
 
         return str;
+}
+
+int get_file_duration(const char *filename)
+{
+    int ret = 0;                                                                                                                                                                 
+    unsigned int i = 0; 
+    AVFormatContext *ifmt_ctx = NULL;
+
+    av_register_all();
+
+    if ((ret =
+         avformat_open_input(&ifmt_ctx, filename, NULL, NULL)) < 0) { 
+        printf("Cannot open input file\n");
+        return NULL;
+    }    
+
+    if ((ret = avformat_find_stream_info(ifmt_ctx, NULL)) < 0) { 
+        printf("Cannot find stream information\n");
+        return NULL;
+    }    
+    
+    int duration = ifmt_ctx->duration/1000000;
+    if (duration < 0)
+	duration = 0;
+    
+
+    if (ifmt_ctx) 
+    {
+	avformat_free_context(ifmt_ctx);
+    }
+    return duration;
 }
 

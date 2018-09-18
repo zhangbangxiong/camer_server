@@ -91,4 +91,5 @@ int parse_week_info(char *week, int winfo[]);
 time_t _gettime_w(int *week);       //unit: s
 long long _gettime_s(void) ;
 time_t str_to_time_1(char *_t);
+int get_file_duration(const char *filename);
 #endif

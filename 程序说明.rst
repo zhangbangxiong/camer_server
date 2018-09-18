@@ -33,8 +33,8 @@
 	- 相关配置文件
 	    - server.conf 程序日志配置文件
 	    - etc.xml 需要在此配置文件中配置下列项：
-			- <server_ip>192.168.102.242</server_ip>#服务ip地址
-			- <server_port>18080</server_port>#服务stream_server所需要的端口 ！！server_ip server_port为一对，主回看服务器这里需配置外网ip与外网端口
+			- <server_ip>192.168.102.242</server_ip>#部署此程序的服务器ip地址
+			- <server_port>18080</server_port>#此程序stream_server所需要的端口 ！！server_ip server_port为一对，需配置外网ip与外网端口
 			- <store_server_ip>27.223.92.102</store_server_ip>#回看服务器ip地址，外网ip
 			- <store_m3u8_port>6060</store_m3u8_port>#回看服务器hls播放端口，外网端口
 			- <store_download_port>7070</store_download_port>#存储服务器文件下载端口，外网端口

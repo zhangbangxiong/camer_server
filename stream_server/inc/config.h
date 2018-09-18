@@ -75,7 +75,8 @@ typedef struct Config{
     char server_port[16];
     char store_server_ip[64];
     int  store_download_port;
-    int  store_m3u8_port;
+    char vod_server_ip[64];
+    int  vod_m3u8_port;
     char stream_server_ip[64];
     int  stream_server_http_port;
     char mysql_ip[64];

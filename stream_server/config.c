@@ -42,8 +42,11 @@ void configure(struct Config *config)
     if ((cxml = ezxml_child(rxml, "store_download_port")) != 0x0)      /* codec exec dir */
        config->store_download_port = atoi(cxml->txt);
 
-    if ((cxml = ezxml_child(rxml, "store_m3u8_port")) != 0x0)      /* codec exec dir */
-       config->store_m3u8_port = atoi(cxml->txt);
+    if ((cxml = ezxml_child(rxml, "vod_server_ip")) != 0x0)      /* codec exec dir */
+        strcpy(config->vod_server_ip, cxml->txt);
+
+    if ((cxml = ezxml_child(rxml, "vod_m3u8_port")) != 0x0)      /* codec exec dir */
+       config->vod_m3u8_port = atoi(cxml->txt);
 
     if ((cxml = ezxml_child(rxml, "mysql_ip")) != 0x0)      /* codec exec dir */
         strcpy(config->mysql_ip, cxml->txt);

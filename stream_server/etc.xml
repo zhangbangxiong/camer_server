@@ -1,7 +1,8 @@
 <configuration>
 	<server_port>18080</server_port>
+	<vod_server_ip>27.223.92.102</vod_server_ip>
+	<vod_m3u8_port>4166</vod_m3u8_port>
 	<store_server_ip>27.223.92.102</store_server_ip>
-	<store_m3u8_port>4166</store_m3u8_port>
 	<store_download_port>7070</store_download_port>
 	<stream_server_ip>27.223.92.102</stream_server_ip>
 	<stream_server_http_port>4180</stream_server_http_port>

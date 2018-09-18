@@ -309,7 +309,7 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 	if (access(m3u8_file, F_OK) == 0)
 	{
 		printf("has this m3u8 file %s\n", m3u8_file);
-		sprintf(m3u8, "http://%s:%d/live/%s/%s_%s.m3u8", _config.store_server_ip, _config.store_m3u8_port, id, start, end);
+		sprintf(m3u8, "http://%s:%d/live/%s/%s_%s.m3u8", _config.vod_server_ip, _config.vod_m3u8_port, id, start, end);
 		printf("00 start_file_num = %d, sum = %d %s\n", start_file_num, sum, m3u8);
 		return 1;
 	}
@@ -398,7 +398,7 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 	snprintf(tmp, sizeof(tmp), "#EXT-X-ENDLIST\n");    
 	fwrite(tmp, strlen(tmp), 1, fp);    
 	fclose(fp);
-	sprintf(m3u8, "http://%s:%d/live/%s/%s_%s.m3u8", _config.store_server_ip, _config.store_m3u8_port, id, start, end);
+	sprintf(m3u8, "http://%s:%d/live/%s/%s_%s.m3u8", _config.vod_server_ip, _config.vod_m3u8_port, id, start, end);
 
         return sum;
 }

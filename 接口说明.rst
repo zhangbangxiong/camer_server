@@ -1,0 +1,41 @@
+=============
+接口说明
+=============
+
+::
+
+1 	stream_server服务接口
+""""""""
+	a 获取回看播放地址
+		- 请求地址 http://ip:port/getm3u8?channel_id=xxx&start_time=xxxx&end_time=xxxxx
+		- 参数说明：
+			- channel_id web分配给每个摄像头的id 如10005
+			- start_time 回看开始时间，单位秒
+			- end_time   回看结束时间，单位秒
+		- 返回数据格式：{"result": "xxxx"}
+			- 成功 {"result": "http://*************.m3u8"}
+			- 失败 {"result": failed}	
+			
+	b 获取回看播放地址
+		- 请求地址 http://ip:port/recorded?path=xxxxx&name=xxxx
+		- 参数说明：
+			- path 录制文件的绝对路径
+			- name web分配给每个摄像头的id 如10005
+		- 返回数据格式：无
+		
+	c 推流程序获取推流任务
+		- 请求地址 http://ip:port/getcamera?server_id=x
+		- 参数说明：
+			- server_id 推流服务器id
+		- 返回数据格式：{"result": "xxxx"}
+			- 成功 {"result": "http://*************.m3u8"}
+			- 失败 {"result": failed}
+			
+	d 获取保存存储文件的最长时间
+		- 请求地址 http://ip:port/getsavetime
+		- 参数说明：无
+		- 返回数据格式：{"result": "xxxx"}
+			- 成功 {"result": "xxxx"} 单位秒 例如 {"result": "12000"}
+			- 失败 {"result": failed}	
+
+	

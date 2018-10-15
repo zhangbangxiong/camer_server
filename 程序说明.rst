@@ -63,8 +63,8 @@
 			- <server_id>1</server_id>#推流服务器id
 			- <stream_server_ip>27.223.92.102</stream_server_ip>#web服务器地址，外网ip
 			- <stream_server_http_port>4180</stream_server_http_port>#web服务器端口，外网端口
-			- <server_ip>192.168.102.242</server_ip>#主回看服务器地址，外网ip
-			- <server_port>18080</server_port>#主回看服务器上部署的stream_server程序监听的端口，外网端口
+			- <server_ip>192.168.102.242</server_ip>#部署stream_server的服务器地址，外网ip
+			- <server_port>18080</server_port>#stream_server程序监听的端口，外网端口
 			- <sh_exec_dir>./mx.encode.sh.v3</sh_exec_dir>#默认
 			- <stream_exec_dir>./ffmpeg</stream_exec_dir>#默认
 			- <kill_sh_dir>./killproc.sh</kill_sh_dir>#默认

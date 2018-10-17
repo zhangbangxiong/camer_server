@@ -14,7 +14,8 @@
 	
 3	直播能看无法观看回放
 	- 回看服务器是否启动
-	- 回看服务器的stream_server程序是否启动（ps -ef | grep stream_server）
+	- 回看服务器的stream_server程序是否启动（ps -ef | grep stream_server），没有启动请启动此程序
+	- 执行netstat -anp | grep 1935，查看是否有连接，没有连接，关闭防火墙
 
 4	无法下载录制视频
 	- 录制服务器是否启动

@@ -3,8 +3,7 @@
 =============
 
 ::
-
-1 启动直播的摄像头都无法观看直播
+1. 启动直播的摄像头都无法观看直播
 	- 查看推流程序stream_to_rtmp的配置，server_ip、server_port所对应服务器的stream_server程序是否启动
 	- stream_to_rtmp配置文件中server_port与stream_server监听的端口是否一致
 	- 流媒体服务器是否启动

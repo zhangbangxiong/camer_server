@@ -54,6 +54,11 @@
 
 #define VERSION "1.0.4"
 
+#define GET_TOKEN "https://open.ys7.com/api/lapp/token/get"
+#define GET_RTMP  "https://open.ys7.com/api/lapp/live/address/limited"
+
+#define RTMP_P "accessToken=%s&deviceSerial=C06324069&channelNo=1"
+
 static volatile char STOP = 0;
 static volatile char STOP_OK = 0;
 
@@ -165,11 +170,97 @@ int report_camera_status(char *camera_id, int status)
         return 0;
 }
 
+static size_t write_callback2(void *ptr, size_t size, size_t nmemb, void *stream)
+{
+	printf("callback1 = %s\n", ptr);
+    	int len  = size * nmemb;
+    	dzlog_info("callback ptr = %s\n", ptr);
+  	cJSON * pjson,*psub,*psub1;
+
+	char deviceSerial[32] = {0};
+	char rtmp_addr[256]   = {0};
+  	int icount=0;
+  	if(NULL == ptr || len <= 0)
+  	{
+        	return -1;
+  	}
+
+  	pjson = cJSON_Parse(ptr);  /* 解析 json 放入 pJson*/
+  	if(NULL == pjson)
+  	{
+    		return -1;
+  	}
+	psub1 = cJSON_GetObjectItem(pjson, "code");
+	printf("res = %s\n", psub1->valuestring);
+	if (atoi(psub1->valuestring) == 200)
+        {
+		psub = cJSON_GetObjectItem(pjson, "data");
+		psub1 = cJSON_GetObjectItem(psub, "deviceSerial");
+                memcpy(deviceSerial, psub1->valuestring, strlen(psub1->valuestring));
+		psub1 = cJSON_GetObjectItem(psub, "rtmp");
+                memcpy(rtmp_addr, psub1->valuestring, strlen(psub1->valuestring));
+		printf("res = %s\n", psub1->valuestring);
+
+		struct stream_info *info  = NULL;
+		struct stream_info *_info = NULL;
+
+		printf("000000000000\n");
+		list_for_each_entry_safe(info, _info, &task_list, list)
+		{
+			printf("name = %s\n", info->stream_name);
+			if (strcmp(deviceSerial, info->stream_name) == 0)
+			{
+				memset(info->in_stream_addr, 0, sizeof(info->in_stream_addr));
+				memcpy(info->in_stream_addr, rtmp_addr, strlen(rtmp_addr));
+
+			        memset(info->protocol, 0, sizeof(info->protocol));
+				memcpy(info->protocol, "rtmp", 4);
+
+				info->status = 1;
+				break;
+			}
+		}
+		printf("000000000001\n");
+
+	}
+	return 0;
+}
+
+static size_t write_callback1(void *ptr, size_t size, size_t nmemb, void *stream)
+{
+	printf("callback1 = %s\n", ptr);
+    	int len  = size * nmemb;
+    	dzlog_info("callback ptr = %s\n", ptr);
+  	cJSON * pjson,*psub,*psub1 ;
+  	int icount=0;
+  	if(NULL == ptr || len <= 0)
+  	{
+        	return -1;
+  	}
+
+  	pjson = cJSON_Parse(ptr);  /* 解析 json 放入 pJson*/
+  	if(NULL == pjson)
+  	{
+    		return -1;
+  	}
+	psub1 = cJSON_GetObjectItem(pjson, "code");
+	printf("res = %s\n", psub1->valuestring);
+	if (atoi(psub1->valuestring) == 200)
+        {
+		psub1 = cJSON_GetObjectItem(pjson, "data");
+		psub1 = cJSON_GetObjectItem(psub1, "accessToken");
+		printf("res = %s\n", psub1->valuestring);
+		get_rtmp(GET_RTMP, psub1->valuestring);
+	}
+	return 0;
+}
+
 static size_t write_callback(void *ptr, size_t size, size_t nmemb, void *stream)
 {
 	int loop = 0;
     	int len  = size * nmemb;
     	dzlog_info("callback ptr = %s\n", ptr);
+    	printf("callback ptr = %s\n", ptr);
   	cJSON * pjson,*psub,*psub1 ;
   	int icount=0;
   	if(NULL == ptr || len <= 0)
@@ -238,6 +329,10 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, void *stream)
 			memset(stream_news->stream_id, 0, sizeof(stream_news->stream_id));
 			memcpy(stream_news->stream_id, psub1->valuestring, strlen(psub1->valuestring));
 
+			psub1 = cJSON_GetObjectItem(psub, "name");
+			memset(stream_news->stream_name, 0, sizeof(stream_news->stream_name));
+			memcpy(stream_news->stream_name, psub1->valuestring, strlen(psub1->valuestring));
+
 			psub1 = cJSON_GetObjectItem(psub, "logo");
 			memset(stream_news->logo, 0, sizeof(stream_news->logo));
 			memcpy(stream_news->logo, psub1->valuestring, strlen(psub1->valuestring));
@@ -263,16 +358,27 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, void *stream)
 			memcpy(stream_news->in_stream_addr, psub1->valuestring, strlen(psub1->valuestring));
 			memset(stream_news->protocol, 0, sizeof(stream_news->protocol));
 			if (strstr(stream_news->in_stream_addr, "rtsp"))
+			{
+				stream_news->status  = 1;
 				memcpy(stream_news->protocol, "rtsp", 4);
+			}
 			else if (strstr(stream_news->in_stream_addr, "rtmp"))
+			{
+				stream_news->status  = 1;
 				memcpy(stream_news->protocol, "rtmp", 4);
+			}
+			else
+		        {	
+				stream_news->status  = 5;//need get rtmp addr,and start push stream
+				memcpy(stream_news->protocol, "http", 4);
+			}
 
+                        printf("stream_news->protocol = %s\n", stream_news->protocol);
 			psub1 = cJSON_GetObjectItem(psub, "out_stream_addr");
 			memset(stream_news->out_stream_addr, 0, sizeof(stream_news->out_stream_addr));
 			memcpy(stream_news->out_stream_addr, psub1->valuestring, strlen(psub1->valuestring));
 
 			pthread_mutex_lock(&infomtx);
-			stream_news->status  = 1;
 			stream_news->restart = 0;
 			list_add_tail(&stream_news->list, &task_list);
 			pthread_cond_signal(&infocond);
@@ -296,6 +402,47 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, void *stream)
 	}
 
     	return len;
+}
+
+int get_rtmp(char* url, char *data)
+{
+	char p_data[1024] = {0};
+        CURL *curl;
+        CURLcode res;
+
+	sprintf(p_data, RTMP_P, data);
+printf("p_data = %s\n", p_data);
+        curl = curl_easy_init();
+        if (curl)
+        {
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, p_data);
+                curl_easy_setopt(curl, CURLOPT_URL, url);
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback2);
+                res = curl_easy_perform(curl);
+        }
+
+	curl_easy_cleanup(curl);  
+
+        return 0;
+}
+
+int get_token(char* url, char *data)
+{
+        CURL *curl;
+        CURLcode res;
+
+        curl = curl_easy_init();
+        if (curl)
+        {
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "appKey=d52fa532e89a4499923be9eed0d5d7fb&appSecret=bdada0a0f0c445c8e8f5f81e559ecb53");
+                curl_easy_setopt(curl, CURLOPT_URL, url);
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback1);
+                res = curl_easy_perform(curl);
+        }
+
+	curl_easy_cleanup(curl);  
+
+        return 0;
 }
 
 int get_camera_info(char* url)
@@ -577,7 +724,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-
 	get_local_ip();
 	if (isvalid_ip(local_ip))
 	{
@@ -597,7 +743,7 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
-	damon();
+	//damon();
 	int rc = dzlog_init("log.conf", "stream_to_rtmp");    
 	if (rc) 
 	{        
@@ -669,6 +815,10 @@ int main(int argc, char **argv)
 						free(info);
 						info = NULL;
 					}
+				}
+				else if (info->status == 5)
+				{
+				        get_token(GET_TOKEN, NULL);	
 				}
 
 				if (info->status == 2 && info->restart == 1)

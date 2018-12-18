@@ -125,4 +125,6 @@ int parse_week_info(char *week, int winfo[]);
 time_t _gettime_w(int *week);       //unit: s
 time_t str_to_time(char *_t);
 long long _gettime_s();   
+int get_rtmp(char *url, char *data);
+int get_token(char *url, char *data);
 #endif

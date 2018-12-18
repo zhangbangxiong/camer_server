@@ -16,7 +16,7 @@ id=${12}
 echo $Rate
 echo $LogPath
 logfile=$LogPath"/"$id".log"
-echo  $InputFileName >>${logfile}
+#echo  $InputFileName >>${logfile}
 
 if [ $Logo == "nologo" ]; then  	
 	vf_str="-vf scale=-4:${Height}"
@@ -39,6 +39,7 @@ else
 fi
 echo $PASS1_PARAMS
 
+echo $logfile
 echo "============= pass 1 params =============" >> ${logfile}
 echo ${PASS1_PARAMS} >> ${logfile}
 echo "=========================================" >> ${logfile}

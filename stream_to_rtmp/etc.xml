@@ -4,9 +4,9 @@
 	<stream_server_http_port>4180</stream_server_http_port>
 	<server_ip>192.168.102.248</server_ip>
 	<server_port>18080</server_port>
-	<sh_exec_dir>/mnt/stream_to_rtmp_20180726/mx.encode.sh.v3</sh_exec_dir>
+	<sh_exec_dir>/mnt/camer_server/stream_to_rtmp/mx.encode.sh.v3</sh_exec_dir>
 	<stream_exec_dir>/usr/local/bin/ffmpeg</stream_exec_dir>
-	<kill_sh_dir>/mnt/stream_to_rtmp_20180726/killproc.sh</kill_sh_dir>
+	<kill_sh_dir>/mnt/camer_server/stream_to_rtmp/killproc.sh</kill_sh_dir>
 	<logo_path>/www/bpls/public</logo_path> 
 	<log_path>/tmp</log_path> 
 </configuration>

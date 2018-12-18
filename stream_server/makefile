@@ -29,7 +29,7 @@ LDFLAGS += -L$(PWD)/libs -L/usr/lib64 -lzlog -lpthread -lm -lmysqlclient -ldl -l
 INCLUDE += -I$(PWD)/inc -I/usr/local/include 
 DEFINES = -D$(PLATFORM)
 
-CXXFLAGS = $(DEFINES) -g -Wall -pipe -O3 -D_GNU_SOURCE -D__USE_XOPEN -DMG_ENABLE_THREADS $(ARCHITECTURE) $(BUS) $(ENDIANNESS) $(FEATURES) $(SPECIFIC_CFLAGS)
+CXXFLAGS = $(DEFINES) -g -Wall -pipe -O3 -Wunused-but-set-variable -D_GNU_SOURCE -D__USE_XOPEN -DMG_ENABLE_THREADS $(ARCHITECTURE) $(BUS) $(ENDIANNESS) $(FEATURES) $(SPECIFIC_CFLAGS)
 
 TARGET = stream_server 
 OBJECTS= main.o ezxml.o arm_xml.o util.o config.o cjson.o mongoose.o md5.o getpath.o http_post.o

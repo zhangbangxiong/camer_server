@@ -54,6 +54,8 @@
 #define API_GETCAMERA           "/getcamera"
 #define API_GETSAVETIME         "/getsavetime"
 
+
+#define FAILED_RES   "{\"result\": failed}"
 #define FILE_NAME_LENGHT 10
 #define MG_FALSE      1
 #define MG_TRUE       0
@@ -292,7 +294,7 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 	printf("start = %s\n", start);
         struct tm* local; //本地时间   
 	int64_t s = atoi(start);
-	printf("s = %lld", s);
+	printf("s = %ld", s);
 	int64_t e = atoi(end);
         local = localtime(&s); //转为本地时间
 	sprintf(start_hour, "%d%02d%02d%02d", local->tm_year+1900, local->tm_mon+1, local->tm_mday, local->tm_hour);
@@ -544,7 +546,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 			if (strlen(id) == 0 || strlen(end) == 0 || strlen(start) == 0)
 			{
 				dzlog_info("failed");
-				mg_reply_messge(conn, "failed");
+				mg_reply_messge(conn, FAILED_RES);
 				return;
 			}
 
@@ -562,7 +564,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 				{
 					dzlog_info("vod m3u8 failed");
 					sprintf(msg, "{\"result\": failed}");
-					mg_reply_messge(conn, "failed");
+					mg_reply_messge(conn, FAILED_RES);
 				}
                 	}	
 			else
@@ -596,7 +598,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 			//if (atoi(server_id) <= 0 || strlen(server_id) == 0 || strlen(server_ip) < 7)
 			if (atoi(server_id) <= 0 || strlen(server_id) == 0)
 			{
-				mg_reply_messge(conn, "failed");
+				mg_reply_messge(conn, FAILED_RES);
 				return;
 			}
 
@@ -605,7 +607,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 
 			if (msg == NULL)
 			{
-				mg_reply_messge(conn, "failed");
+				mg_reply_messge(conn, FAILED_RES);
 				free(msg);
 			}
 			else
@@ -617,7 +619,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
                         int _time = read_time_mysql();
 			sprintf(msg, "%d", _time);
 			if (msg == NULL)
-				mg_reply_messge(conn, "failed");
+				mg_reply_messge(conn, FAILED_RES);
 			else
 				mg_reply_messge(conn, msg);
 		}

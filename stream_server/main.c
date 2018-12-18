@@ -493,7 +493,8 @@ static int report_file_info(char *filepath, char *camera_id)
 			end_time = start_time + duration;
 		else
                 	end_time = buf.st_mtime;
-		int id = atoi(camera_id) - 10000;
+		int id = 0;
+                sscanf(camera_id, "1000%d", &id);
  		if (id > 0 && start_time > 0 && end_time > 0 && (end_time - start_time) > 120)
 		{
 			sprintf(durl, "http://%s:%d/%s", _config.store_server_ip, _config.store_download_port, filename);

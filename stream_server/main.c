@@ -56,6 +56,7 @@
 
 
 #define FAILED_RES   "{\"result\": failed}"
+#define SUCCESS_RES  "{\"result\": OK}"
 #define FILE_NAME_LENGHT 10
 #define MG_FALSE      1
 #define MG_TRUE       0
@@ -443,6 +444,7 @@ static int report_file_info(char *filepath, char *camera_id)
         char filename[64] = {0};
 
         memcpy(tmp, filepath, strlen(filepath));
+        printf("00 filepath = %s\n", filepath);
         printf("00 tmp = %s\n", tmp);
         if (tmp[strlen(tmp) - 1] == '/')
         {
@@ -488,6 +490,7 @@ static int report_file_info(char *filepath, char *camera_id)
                 dzlog_info("file name    = %s",filename);
                 dzlog_info("camera_id    = %s",camera_id);
 		int duration = get_file_duration(filepath);
+                dzlog_info("duration     = %d",duration);
                 start_time = pp;
 		if (duration > 0)
 			end_time = start_time + duration;
@@ -503,6 +506,7 @@ static int report_file_info(char *filepath, char *camera_id)
                 	dzlog_info("_data = %s", _data);
                 	send_data(curl, _data);
 		}
+                dzlog_info("file:%s report finish", filename);
 	}
 
 	return 0;
@@ -585,7 +589,9 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
                       	mg_get_http_var(&hm->body, "path", path, 512);
                       	mg_get_http_var(&hm->body, "name", name, 256);
 			dzlog_info("path = %s\n", path);
+			dzlog_info("name = %s\n", name);
 			report_file_info(path, name);
+			mg_reply_messge(conn, SUCCESS_RES);
 		}
 		else if (!strncmp(hm->uri.p, API_GETCAMERA, strlen(API_RECORD)))		
 		{

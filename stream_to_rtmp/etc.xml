@@ -1,5 +1,5 @@
 <configuration>
-	<server_id>1</server_id>
+	<server_id>3</server_id>
 	<stream_server_ip>27.223.92.102</stream_server_ip>
 	<stream_server_http_port>4180</stream_server_http_port>
 	<server_ip>192.168.102.248</server_ip>
@@ -7,6 +7,6 @@
 	<sh_exec_dir>/mnt/camer_server/stream_to_rtmp/mx.encode.sh.v3</sh_exec_dir>
 	<stream_exec_dir>/usr/local/bin/ffmpeg</stream_exec_dir>
 	<kill_sh_dir>/mnt/camer_server/stream_to_rtmp/killproc.sh</kill_sh_dir>
-	<logo_path>/www/bpls/public</logo_path> 
+	<logo_path>/mnt/camer_server/stream_to_rtmp/logo.png</logo_path> 
 	<log_path>/tmp</log_path> 
 </configuration>

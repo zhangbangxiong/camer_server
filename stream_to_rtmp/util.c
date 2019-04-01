@@ -413,7 +413,8 @@ void *start_gome_transcoder(void *params)
 		_config.sh, 		_config.ffmpeg, info->in_stream_addr, 
 		info->protocol, 	info->encode, 	info->bitrate,
 		info->width, 		info->height, 	0, 
-		info->out_stream_addr,	info->logo, 	_config.log_path,
+		//info->out_stream_addr,info->logo,  _config.log_path,
+		info->out_stream_addr,	_config.logo_path, _config.log_path,
 		info->stream_id);
 
 	dzlog_info("[%s]----- argv = %s", info->stream_id, argv);

@@ -32,6 +32,7 @@
 
 #include "curl/curl.h"
 #include "util.h"
+#include "tutil.h"
 #include "smp_md5.h"
 #include "cpumem.h"
 #include "md5.h"
@@ -172,7 +173,7 @@ int report_camera_status(char *camera_id, int status)
 
 static size_t write_callback2(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-	printf("callback1 = %s\n", ptr);
+	//printf("callback1 = %s\n", ptr);
     	int len  = size * nmemb;
     	dzlog_info("callback ptr = %s\n", ptr);
   	cJSON * pjson,*psub,*psub1;
@@ -191,7 +192,7 @@ static size_t write_callback2(void *ptr, size_t size, size_t nmemb, void *stream
     		return -1;
   	}
 	psub1 = cJSON_GetObjectItem(pjson, "code");
-	printf("res = %s\n", psub1->valuestring);
+	//printf("res = %s\n", psub1->valuestring);
 	if (atoi(psub1->valuestring) == 200)
         {
 		psub = cJSON_GetObjectItem(pjson, "data");
@@ -199,15 +200,13 @@ static size_t write_callback2(void *ptr, size_t size, size_t nmemb, void *stream
                 memcpy(deviceSerial, psub1->valuestring, strlen(psub1->valuestring));
 		psub1 = cJSON_GetObjectItem(psub, "rtmp");
                 memcpy(rtmp_addr, psub1->valuestring, strlen(psub1->valuestring));
-		printf("res = %s\n", psub1->valuestring);
+		//printf("res = %s\n", psub1->valuestring);
 
 		struct stream_info *info  = NULL;
 		struct stream_info *_info = NULL;
 
-		printf("000000000000\n");
 		list_for_each_entry_safe(info, _info, &task_list, list)
 		{
-			printf("name = %s\n", info->stream_name);
 			if (strcmp(deviceSerial, info->stream_name) == 0)
 			{
 				memset(info->in_stream_addr, 0, sizeof(info->in_stream_addr));
@@ -220,7 +219,6 @@ static size_t write_callback2(void *ptr, size_t size, size_t nmemb, void *stream
 				break;
 			}
 		}
-		printf("000000000001\n");
 
 	}
 	return 0;
@@ -228,9 +226,7 @@ static size_t write_callback2(void *ptr, size_t size, size_t nmemb, void *stream
 
 static size_t write_callback1(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-	printf("callback1 = %s\n", ptr);
     	int len  = size * nmemb;
-    	dzlog_info("callback ptr = %s\n", ptr);
   	cJSON * pjson,*psub,*psub1 ;
   	int icount=0;
   	if(NULL == ptr || len <= 0)
@@ -244,12 +240,10 @@ static size_t write_callback1(void *ptr, size_t size, size_t nmemb, void *stream
     		return -1;
   	}
 	psub1 = cJSON_GetObjectItem(pjson, "code");
-	printf("res = %s\n", psub1->valuestring);
 	if (atoi(psub1->valuestring) == 200)
         {
 		psub1 = cJSON_GetObjectItem(pjson, "data");
 		psub1 = cJSON_GetObjectItem(psub1, "accessToken");
-		printf("res = %s\n", psub1->valuestring);
 		get_rtmp(GET_RTMP, psub1->valuestring);
 	}
 	return 0;
@@ -260,7 +254,6 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, void *stream)
 	int loop = 0;
     	int len  = size * nmemb;
     	dzlog_info("callback ptr = %s\n", ptr);
-    	printf("callback ptr = %s\n", ptr);
   	cJSON * pjson,*psub,*psub1 ;
   	int icount=0;
   	if(NULL == ptr || len <= 0)
@@ -411,7 +404,7 @@ int get_rtmp(char* url, char *data)
         CURLcode res;
 
 	sprintf(p_data, RTMP_P, data);
-printf("p_data = %s\n", p_data);
+        printf("p_data = %s\n", p_data);
         curl = curl_easy_init();
         if (curl)
         {
@@ -743,7 +736,8 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
-	//damon();
+	//
+	//vamon();
 	int rc = dzlog_init("log.conf", "stream_to_rtmp");    
 	if (rc) 
 	{        
@@ -789,6 +783,7 @@ int main(int argc, char **argv)
 					//if (strstr(info->in_stream_addr, "rtsp") && strstr(info->out_stream_addr, "rtmp"))
 					if (1)
 					{
+						//pthread_create(&sid, NULL, start_transcoder, (void *)info);
 						pthread_create(&sid, NULL, start_gome_transcoder, (void *)info);
 				 		pthread_detach(sid);
 					}

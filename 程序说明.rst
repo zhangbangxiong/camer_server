@@ -68,6 +68,6 @@
 			- <sh_exec_dir>./mx.encode.sh.v3</sh_exec_dir>#默认
 			- <stream_exec_dir>./ffmpeg</stream_exec_dir>#默认
 			- <kill_sh_dir>./killproc.sh</kill_sh_dir>#默认
-			- <logo_path>/www/bpls/public</logo_path> #默认
+			- <logo_path>/tmp/logo.png</logo_path> #为logo文件绝对路径，不添加则不加logo
 			- <log_path>./log</log_path> #默认
 	

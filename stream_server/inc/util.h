@@ -85,6 +85,7 @@ struct node
 char *read_mysql(int server_id, const char *ip);
 int   mysql_ishave_data(int server_id, const char *ip);
 int   read_time_mysql();
+int   del_video_mysql(char *name);
 char *url_encode(char const *s, int len, int *new_len);
 int url_encode_2(const char* src, const int srcsize, char* dst, int dstsize);
 int parse_week_info(char *week, int winfo[]);

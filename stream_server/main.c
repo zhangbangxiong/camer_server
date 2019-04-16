@@ -53,9 +53,11 @@
 #define API_RECORD              "/recorded"
 #define API_GETCAMERA           "/getcamera"
 #define API_GETSAVETIME         "/getsavetime"
+#define API_DELVIDEO         	"/delvideo"
 
 
 #define FAILED_RES       "{\"result\": failed}"
+#define FAILED_OK        "{\"result\": success}"
 #define FAILED_RES_NUM   "{\"result\": 0}"
 #define FILE_NAME_LENGHT 10
 #define MG_FALSE      1
@@ -590,14 +592,11 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 		}
 		else if (!strncmp(hm->uri.p, API_GETCAMERA, strlen(API_RECORD)))		
 		{
-			dzlog_info("---- get camera ----");
                         int  num = 0;
 			char server_id[32] = {0};
 			char server_ip[32] = {0};
                       	mg_get_http_var(&hm->query_string, "server_id", server_id, 32);
                       	//mg_get_http_var(&hm->query_string, "ip", server_ip, 32);
-			printf("id = %s\n", server_id);
-			//printf("ip = %s\n", server_ip);
 			//if (atoi(server_id) <= 0 || strlen(server_id) == 0 || strlen(server_ip) < 7)
 			if (atoi(server_id) <= 0 || strlen(server_id) == 0)
 			{
@@ -631,6 +630,15 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 				mg_reply_messge(conn, FAILED_RES);
 			else
 				mg_reply_messge(conn, msg);
+		}
+		else if (!strncmp(hm->uri.p, API_DELVIDEO, strlen(API_DELVIDEO)))		
+		{
+			char name[64] = {0};
+                      	mg_get_http_var(&hm->query_string, "name", name, 64);
+			dzlog_info("del video [%s] from mysql", name);
+			del_video_mysql(name);
+			printf("9090\n");
+			mg_reply_messge(conn, FAILED_OK);
 		}
 	} 
 

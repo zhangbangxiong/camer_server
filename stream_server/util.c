@@ -367,6 +367,38 @@ int executesql(MYSQL *g_conn, const char * sql)
         return 0; // 成功执行
 }
 
+int del_video_mysql(char *name)
+{
+        MYSQL *g_conn; 
+        MYSQL_ROW g_row; 
+        MYSQL_RES *g_res;
+        g_conn = mysql_init(NULL);
+
+        // connect the database
+        if(!mysql_real_connect(g_conn, _config.mysql_ip, _config.mysql_user, _config.mysql_passwd, "bpls", _config.mysql_port, NULL, 0))
+        {
+                printf("mysql connect failed\n");
+        	mysql_close(g_conn); // 关闭链接
+                return -1;
+        }
+
+        char del_sql[256] = {0};
+        sprintf(del_sql, "delete from bpls_record where download_url like '%%%s'", name);
+
+        int ret = 0;//executesql(g_conn, del_sql);
+        if (ret < 0)
+        {
+                printf("del error\n");
+                mysql_close(g_conn); // 关闭链接
+                return -1;
+        }
+
+        mysql_close(g_conn); // 关闭链接
+
+	return 0;
+}
+
+
 int read_time_mysql()
 {
         MYSQL *g_conn; 
@@ -422,7 +454,7 @@ int mysql_ishave_data(int server_id, const char *ip)
         }
 
 	char select_sql[64] = {0};
-	sprintf(select_sql, "select * from bpls_stream_machine where stream_machine_id=%d and ip=\"%s\"", server_id, ip);
+	sprintf(select_sql, "select * from bpls_stream_machine where stream_machine_id=%d", server_id);
 	if (executesql(g_conn, select_sql))
 	{
 		printf("select error\n");

@@ -32,7 +32,7 @@ DEFINES = -D$(PLATFORM)
 CXXFLAGS = $(DEFINES) -g -Wall -pipe -O3 -DMG_ENABLE_THREADS $(ARCHITECTURE) $(BUS) $(ENDIANNESS) $(FEATURES) $(SPECIFIC_CFLAGS)
 
 TARGET = scan
-OBJECTS= ezxml.o arm_xml.o util.o config.o main.o 
+OBJECTS= ezxml.o arm_xml.o util.o config.o main.o http_post.o
 
 all:$(OBJECTS) 
 	$(CXX) -o $(TARGET) $(OBJECTS) $(LDFLAGS)

@@ -385,7 +385,7 @@ int del_video_mysql(char *name)
         char del_sql[256] = {0};
         sprintf(del_sql, "delete from bpls_record where download_url like '%%%s'", name);
 
-        int ret = 0;//executesql(g_conn, del_sql);
+        int ret = executesql(g_conn, del_sql);
         if (ret < 0)
         {
                 printf("del error\n");

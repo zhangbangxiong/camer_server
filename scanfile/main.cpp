@@ -36,7 +36,6 @@
 #include "cjson.h"
 #include "mongoose.h"
 #include "zlog.h"
-#include "http_post.h"
 
 #include <iostream>  
 #include <string>  
@@ -52,6 +51,7 @@
 #include "curl/curl.h"
 extern "C" {
 #include "config.h"
+#include "http_post.h"
 }
 
 using namespace std;  
@@ -493,22 +493,24 @@ int do_curl(char* url)
 
 int report_del_video(char *file)
 {
+	int ret = 0;
+
 	if (!file)
 		return -1;
 
-	char url[256] = {0};
-	sprintf(url, "http://%s:%s/delvideo?name=%s", _config.server_ip, _config.server_port, file);
-	dzlog_info("url = %s\n", url);
-	do_curl(url);
+	char addr[256] = {0};
+	char res[256]  = {0};
+	
+	sprintf(addr, "delvideo?name=%s", file);
+	ret = send_msg(_config.server_ip, atoi(_config.server_port), addr, res);
 
-        return 0;
+        return  ret;
 }
 
 int remove_file(char *file)
 {
+	int res = 0;
         char arg[1024] = {0};
-        sprintf(arg, "rm -rf %s", file);
-        system(arg);
 
         if (strstr(file, "record"))
         {
@@ -516,16 +518,21 @@ int remove_file(char *file)
 		char name[64] = {0};
 
 		if (!q)
-			return 1;
+			return -1;
 
 		strcpy(name, q + 1);
-                report_del_video(name);
+                res = report_del_video(name);
+		if (res < 0)
+			return -1;
         }
+
+        sprintf(arg, "rm -rf %s", file);
+        system(arg);
 
         if (access(file, F_OK) == -1)
                 return 0;
         else
-                return 1;
+                return -1;
 }
 
 void sig_ignore()
@@ -579,7 +586,7 @@ int main(int argc, char **argv)
         if (rc)
         {
                 fprintf(stderr, "dzlog init error\n");
-                return 1;
+                return -1;
         }
         dzlog_info("starting...");
 

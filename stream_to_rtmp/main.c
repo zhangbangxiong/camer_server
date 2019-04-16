@@ -736,8 +736,7 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
-	//
-	//vamon();
+	damon();
 	int rc = dzlog_init("log.conf", "stream_to_rtmp");    
 	if (rc) 
 	{        

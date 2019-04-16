@@ -22,14 +22,14 @@ ifeq ($(findstring Linux,$(OS)),Linux)
 endif
 
 LIBS += 
-LDFLAGS += -L$(PWD)/libs -L/usr/lib64 -lzlog -lpthread -lm -lmysqlclient -ldl -lz -lcurl -lrtmp -lavutil -lavcodec -lavdevice -lavformat -lavfilter
+LDFLAGS += -L$(PWD)/libs -L/usr/lib64 -lzlog -lpthread -lm -lmysqlclient -ldl -lz -lcurl -lrtmp 
 INCLUDE += -I$(PWD)/inc -I$(PWD)/librtmp
 DEFINES = -D$(PLATFORM)
 
 CXXFLAGS = $(DEFINES) -g -Wall -pipe -O3 -DMG_ENABLE_THREADS $(ARCHITECTURE) $(BUS) $(ENDIANNESS) $(FEATURES) $(SPECIFIC_CFLAGS)
 
 TARGET = stream_to_rtmp
-OBJECTS= main.o ezxml.o arm_xml.o util.o tutil.o config.o cjson.o mongoose.o 
+OBJECTS= main.o ezxml.o arm_xml.o util.o config.o cjson.o mongoose.o 
 
 all:$(OBJECTS) 
 	$(CC) -o $(TARGET) $(OBJECTS) $(LDFLAGS)

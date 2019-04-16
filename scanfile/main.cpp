@@ -572,7 +572,7 @@ void damon()
 
 int main(int argc, char **argv)  
 {  
-	//damon();
+	damon();
 	char pattern[32] = ".*";
         int rc = 0;
         rc = dzlog_init("scan_log.conf", "scan");
@@ -603,7 +603,7 @@ int main(int argc, char **argv)
     		for (int i = 0; i < (int)v_file_path.size(); i++) 
 		{  
 			int  res = check_file(v_file_path[i].c_str());
-			if (res >= 0)//save_time)
+			if (res >= save_time)
 			{
 				if (remove_file((char *)v_file_path[i].c_str()) == 0)
 				{

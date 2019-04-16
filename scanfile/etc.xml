@@ -11,5 +11,5 @@
 	<mysql_user>root</mysql_user>
 	<mysql_passwd>RbF2017_$</mysql_passwd>
 	<m3u8_path>/home/live</m3u8_path>
-	<store_path>/home/record</store_path>
+	<store_path>/home/video</store_path>
 </configuration>

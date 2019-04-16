@@ -207,7 +207,7 @@ int mv_file(const char *file)
 		tm* local; //本地时间   
 		local = localtime(&sec); //转为本地时间
 		sprintf(spath, "%s/%d%02d%02d%02d", lpath, local->tm_year+1900, local->tm_mon+1, local->tm_mday, local->tm_hour);
-		printf("spath = %s\n", spath);
+		dzlog_info("spath = %s", spath);
         	if (access(spath, F_OK) == -1)
         	{
 			mkdir(spath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); 
@@ -270,7 +270,9 @@ int scan_dirpath(char *path, char *pattern)
 
 				
                 		if (regex_match(file, pattern) == 0 && strstr(file_path, "record")) 
+				{
 					v_file_path.push_back(file_path); 
+				}
                 		else if (regex_match(file, pattern) == 0 && strstr(file_path, "live")) 
 				{ 
 					mv_file(file_path);
@@ -353,7 +355,7 @@ int send_info(char* url, char* data)
     CURLcode res;
     curl = curl_easy_init();
 
-    printf("data = %s\n", data);
+    dzlog_info("data = %s", data);
 
     if (curl)
     {
@@ -375,7 +377,6 @@ int send_info(char* url, char* data)
     }
 
     curl_easy_cleanup(curl);
-    printf("send done!\n");
     return 0;
 }
 
@@ -405,7 +406,6 @@ int report_file_info(char *filepath, char *filename)
 	char camera_id[64] = {0};
 
 	memcpy(tmp, filepath, strlen(filepath));
-	printf("tmp = %s\n", tmp);
 	if (tmp[strlen(tmp) - 1] == '/')
 	{
 		tmp[strlen(tmp) - 1] = '\0';
@@ -439,7 +439,7 @@ int report_file_info(char *filepath, char *filename)
                 //int dif_time = _gettime_s() - buf.st_mtime;
     		sprintf(_data, "{\"camera_id\":\"%s\",\"start_time\":%lld,\"start_time\":%lld,\"download_url\":\"%s\"}", "4", start_time, end_time, "test");
 		url_encode(_data, strlen(_data), edata, 1024);
-		printf("edata = %s\n", edata);
+		dzlog_info("edata = %s", edata);
 		send_data(curl, _data);
         }
 
@@ -449,7 +449,6 @@ int report_file_info(char *filepath, char *filename)
 static size_t write_callback(void *ptr, size_t size, size_t nmemb, void *stream)
 {
         int len  = size * nmemb;
-        printf("ptr = %s\n", (char *)ptr);
     	save_time = atoi((char *)ptr);
 
 	return len;
@@ -461,7 +460,6 @@ int get_save_time()
 
         char url[256] = {0};
         sprintf(url, "http://%s:%s/getsavetime", _config.server_ip, _config.server_port);
-	printf("url == %s\n", url);
 
         curl = curl_easy_init();
         if (curl)
@@ -476,20 +474,105 @@ int get_save_time()
         return 0;
 }
 
-int remove_file(const char *file)
+int do_curl(char* url)
 {
-	char arg[1024] = {0};
-	sprintf(arg, "rm -rf %s", file);
-	system(arg);
+        CURL *curl;
+
+        curl = curl_easy_init();
+        if (curl)
+        {
+                curl_easy_setopt(curl, CURLOPT_URL, url);
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+                curl_easy_perform(curl);
+        }
+
+        curl_easy_cleanup(curl);
+
+        return 0;
+}
+
+int report_del_video(char *file)
+{
+	if (!file)
+		return -1;
+
+	char url[256] = {0};
+	sprintf(url, "http://%s:%s/delvideo?name=%s", _config.server_ip, _config.server_port, file);
+	dzlog_info("url = %s\n", url);
+	do_curl(url);
+
+        return 0;
+}
+
+int remove_file(char *file)
+{
+        char arg[1024] = {0};
+        sprintf(arg, "rm -rf %s", file);
+        system(arg);
+
+        if (strstr(file, "record"))
+        {
+		char *q = strrchr(file, '/');
+		char name[64] = {0};
+
+		if (!q)
+			return 1;
+
+		strcpy(name, q + 1);
+                report_del_video(file);
+        }
 
         if (access(file, F_OK) == -1)
-		return 0;
-	else
-		return 1;
+                return 0;
+        else
+                return 1;
+}
+
+void sig_ignore()
+{
+        sigset_t sigSetMask;
+        sigfillset(&sigSetMask);
+        sigdelset(&sigSetMask, SIGUSR1);
+        sigdelset(&sigSetMask, SIGTERM);
+        sigdelset(&sigSetMask, SIGINT);
+        sigprocmask(SIG_SETMASK, &sigSetMask, 0);
+}
+
+void damon()
+{
+        int ret = fork();
+        if(ret)
+        {
+                exit(0);
+        }
+
+        sig_ignore();
+        setsid();
+        int fd = open("/dev/null", O_RDWR);
+        if (fd)
+        {
+                dup2(fd, 0);
+                dup2(fd, 1);
+                dup2(fd, 2);
+                close(fd);
+        }
+
+        while (1)
+        {
+                pid_t pid = fork();
+                if(pid)
+                {
+                        waitpid(pid, NULL, 0);
+                }
+                else
+                        break;
+        }
+
 }
 
 int main(int argc, char **argv)  
 {  
+	damon();
 	char pattern[32] = ".*";
         int rc = 0;
         rc = dzlog_init("scan_log.conf", "scan");
@@ -503,7 +586,7 @@ int main(int argc, char **argv)
 	configure(&_config);
 	get_save_time();
 
-	printf("store_path = %s\n", _config.store_path);
+	dzlog_info("store_path = %s, save_time = %d", _config.store_path, save_time);
 	if (_config.store_path == NULL)
 	{
 		printf("please add store path in config file\n");
@@ -515,15 +598,14 @@ int main(int argc, char **argv)
 		v_file_path.clear();	
 
     		scan_dirpath(_config.store_path, pattern);  
-		dzlog_info("v_file_path.size() = %d, save_time = %d", (int)v_file_path.size(), save_time);
 
-		dzlog_info("--------------------------------");
+		//dzlog_info("--------------------------------");
     		for (int i = 0; i < (int)v_file_path.size(); i++) 
 		{  
 			int  res = check_file(v_file_path[i].c_str());
 			if (res >= save_time)
 			{
-				if (remove_file(v_file_path[i].c_str()) == 0)
+				if (remove_file((char *)v_file_path[i].c_str()) == 0)
 				{
 					dzlog_info("del the file:%s success", v_file_path[i].c_str());
 				}
@@ -534,7 +616,7 @@ int main(int argc, char **argv)
 			}
 
     		}
-		dzlog_info("================================\n");
+		//dzlog_info("================================\n");
 		sleep(3);
 	}
   

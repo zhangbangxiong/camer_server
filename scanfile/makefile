@@ -25,7 +25,7 @@ ifeq ($(findstring Linux,$(OS)),Linux)
 endif
 
 LIBS += 
-LDFLAGS += -L$(PWD)/libs -L/usr/lib/ -lzlog -lpthread -lcurl 
+LDFLAGS += -L$(PWD)/libs -L/usr/lib64/ -lzlog -lpthread -lcurl 
 INCLUDE += -I$(PWD)/inc 
 DEFINES = -D$(PLATFORM)
 

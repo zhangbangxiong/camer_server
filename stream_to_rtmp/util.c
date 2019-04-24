@@ -379,7 +379,7 @@ int check_codec_log(char *path, int *error_no)
 	
 }
 
-#define CODEC_VIDEO_STRING_0  "%s %s %s %s %s %s %s %s %d %s %s %s %s"
+#define CODEC_VIDEO_STRING_0  "%s %s %s %s %s %s %s %s %d %s %s %s %d %s"
 #define CODEC_JPEG_STRING   "%s -i %s -o %s -n 20 -@ %s"
 #define TSCUT_STRING        "%s -i %s -d 10 -o %s -s %s -d 10 -x %s"
 void *start_gome_transcoder(void *params)
@@ -413,9 +413,8 @@ void *start_gome_transcoder(void *params)
 		_config.sh, 		_config.ffmpeg, info->in_stream_addr, 
 		info->protocol, 	info->encode, 	info->bitrate,
 		info->width, 		info->height, 	0, 
-		//info->out_stream_addr,info->logo,  _config.log_path,
-		info->out_stream_addr,	_config.logo_path, _config.log_path,
-		info->stream_id);
+		info->out_stream_addr,	_config.logo_path, _config.log_path, 
+		_config.logo_pos,       info->stream_id);
 
 	dzlog_info("[%s]----- argv = %s", info->stream_id, argv);
 

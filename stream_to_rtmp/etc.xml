@@ -8,5 +8,6 @@
 	<stream_exec_dir>/usr/local/bin/ffmpeg</stream_exec_dir>
 	<kill_sh_dir>/mnt/camer_server/stream_to_rtmp/killproc.sh</kill_sh_dir>
 	<logo_path>/mnt/camer_server/stream_to_rtmp/logo.png</logo_path> 
+	<logo_pos>1</logo_pos>#1-left 2-right
 	<log_path>/tmp</log_path> 
 </configuration>

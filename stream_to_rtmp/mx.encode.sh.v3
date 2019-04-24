@@ -11,7 +11,8 @@ audio=$8
 Output=$9
 Logo=${10}
 LogPath=${11}
-id=${12}
+pos=${12}
+id=${13}
 
 ext1=".png"
 ext2=".jpg"
@@ -23,7 +24,11 @@ echo  $InputFileName >>${logfile}
 
 if [ -f $Logo ] && [ ! -d $Logo ] && [[ $Logo =~ $ext1 || $Logo =~ $ext2 ]];  then
 	let lh=$Height/10
-	vf_str="-filter_complex [0:v]scale=-4:$Height[movie];[1:v]scale=$lh:$lh[img1];[img1]colorkey=white[img2];[movie][img2]overlay=20:20"
+	if [ $pos == 1 ];then
+		vf_str="-filter_complex [0:v]scale=-4:$Height[movie];[1:v]scale=-1:$lh[img1];[movie][img1]overlay=30:30"
+	else
+		vf_str="-filter_complex [0:v]scale=-4:$Height[movie];[1:v]scale=-1:$lh[img1];[movie][img1]overlay=W-w-30:30"
+	fi
 	in_put="-i ${Input} -i ${Logo}"
 else	
 	vf_str="-vf scale=-4:${Height}"

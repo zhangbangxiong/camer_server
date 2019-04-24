@@ -51,6 +51,11 @@ void configure(struct Config *config)
     if ((cxml = ezxml_child(rxml, "logo_path")) != 0x0)      /* codec exec dir */
         strcpy(config->logo_path, cxml->txt);
 
+    if ((cxml = ezxml_child(rxml, "logo_pos")) != 0x0)      /* codec exec dir */
+        config->logo_pos = atoi(cxml->txt);
+    else
+	config->logo_pos = -1;
+
     if ((cxml = ezxml_child(rxml, "log_path")) != 0x0)      /* codec log path */
         strcpy(config->log_path, cxml->txt);
 

@@ -74,6 +74,7 @@ typedef struct Config{
     char kill_sh[b_len];
     char logo_path[b_len];
     char log_path[b_len];
+    int logo_pos;
 }config_t;
 
 void configure(struct Config *config);

@@ -1,6 +1,5 @@
-# camer_server
-#处理摄像头推流
 启动流媒体服务服务
+
 启动之前的准备：
 
 1.pkill nginx 

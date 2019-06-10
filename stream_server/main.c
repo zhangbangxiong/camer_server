@@ -64,7 +64,7 @@
 #define MG_TRUE       0
 #define FILE_STREAM_LEN 60      //SECONDS
 
-#define MAX_FILE_NUM    600
+#define MAX_FILE_NUM    1200 
 #define TIME_STR        12
 #define TIME_SECOND     12
 #define TIME_HOUR       8
@@ -270,7 +270,7 @@ static int get_m3u8_from_other_server(char *id,  char *start, char *end, char *r
 	return r;
 }
 
-static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m3u8)
+static int m3u8_get_files(const char *path, const char *id,  char *start, char *end, char *m3u8)
 {
 	struct file_info g_file_info[MAX_FILE_NUM];
 	char g_file_list[MAX_FILE_NUM][64];
@@ -295,6 +295,7 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 	char end_hour[64]      = {0};
 
 	printf("start = %s\n", start);
+	printf("end   = %s\n", end);
         struct tm* local; //本地时间   
 	int64_t s = atoi(start);
 	printf("s = %ld", s);
@@ -321,7 +322,7 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 
 	sprintf(channel_path,"%s/%s", path, id);
         num = scandir(channel_path, &namelist, recorddir, alphasort);
-	printf("num  = %d\n", num);
+	printf("num  = %d, id = %s\n", num, id);
         if (num < 0)
         {
                 return -1;
@@ -373,6 +374,9 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 		}    
 		if (namesub)
 			free(namesub);
+
+		if (sum >= MAX_FILE_NUM)
+			break;
 	}
 
         while (num--)                                                                                                                                                            
@@ -387,6 +391,7 @@ static int m3u8_get_files(char *path, char *id,  char *start, char *end, char *m
 
 	FILE *fp = NULL;    
 	snprintf(m3u8_file, 512, "%s/%s_%s.m3u8", channel_path, start, end);    
+	printf("m3u8_file = %s\n", m3u8_file);
 	fp = fopen(m3u8_file, "wb");    
 	snprintf(tmp, sizeof(tmp),  
 			"#EXTM3U\n"                     

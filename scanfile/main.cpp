@@ -273,7 +273,7 @@ int scan_dirpath(char *path, char *pattern)
 				{
 					v_file_path.push_back(file_path); 
 				}
-                		else if (regex_match(file, pattern) == 0 && strstr(file_path, "live")) 
+                		else if (regex_match(file, pattern) == 0 && strstr(file_path, "live") && strstr(file_path, "ts")) 
 				{ 
 					mv_file(file_path);
                 		}	  
@@ -449,7 +449,10 @@ int report_file_info(char *filepath, char *filename)
 static size_t write_callback(void *ptr, size_t size, size_t nmemb, void *stream)
 {
         int len  = size * nmemb;
-    	save_time = atoi((char *)ptr);
+    	int time = atoi((char *)ptr);
+
+	if (time >= 0)
+		save_time = time;
 
 	return len;
 }
@@ -502,6 +505,7 @@ int report_del_video(char *file)
 	char res[256]  = {0};
 	
 	sprintf(addr, "delvideo?name=%s", file);
+        dzlog_info("report_del_video addr=%s", addr);
 	ret = send_msg(_config.server_ip, atoi(_config.server_port), addr, res);
 
         return  ret;
@@ -591,7 +595,6 @@ int main(int argc, char **argv)
         dzlog_info("starting...");
 
 	configure(&_config);
-	get_save_time();
 
 	dzlog_info("store_path = %s, save_time = %d", _config.store_path, save_time);
 	if (_config.store_path == NULL)
@@ -602,14 +605,16 @@ int main(int argc, char **argv)
 
 	while (1)
 	{
+		get_save_time();
 		v_file_path.clear();	
 
     		scan_dirpath(_config.store_path, pattern);  
 
-		//dzlog_info("--------------------------------");
+		//dzlog_info("-------------------------------- save_time = %d", save_time);
     		for (int i = 0; i < (int)v_file_path.size(); i++) 
 		{  
 			int  res = check_file(v_file_path[i].c_str());
+			//dzlog_info("-------------------------------- res = %d", res);
 			if (res >= save_time)
 			{
 				if (remove_file((char *)v_file_path[i].c_str()) == 0)

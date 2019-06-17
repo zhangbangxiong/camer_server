@@ -2630,7 +2630,8 @@ void mg_if_accept_tcp_cb(struct mg_connection *nc, union socket_address *sa,
 }
 
 void mg_send(struct mg_connection *nc, const void *buf, int len) {
-  if (len < 0)
+  printf("len = %d\n", len);
+  if (len <= 0)
 	return;
   nc->last_io_time = mg_time();
   if (nc->flags & MG_F_UDP) {

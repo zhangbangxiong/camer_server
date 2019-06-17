@@ -471,7 +471,7 @@ int mysql_ishave_data(int server_id, const char *ip)
 	return res;
 }
 
-char *read_mysql(int server_id, const char *ip)
+int read_mysql(int server_id, const char *ip, char *msg)
 {
         MYSQL *g_conn; 
         MYSQL_ROW g_row; 
@@ -483,7 +483,7 @@ char *read_mysql(int server_id, const char *ip)
         {
                 printf("mysql connect failed\n");
         	mysql_close(g_conn); // 关闭链接
-                return NULL;
+                return -1;
         }
 
 	char select_sql_m[64] = {0};
@@ -511,7 +511,7 @@ char *read_mysql(int server_id, const char *ip)
 	{
 		printf("bpls_camera select error\n");
         	mysql_close(g_conn); // 关闭链接
-		return NULL;
+		return -1;
 	}
 
 	g_res = mysql_store_result(g_conn); // 从服务器传送结果集至本地，mysql_use_result直接使用服务器上的记录集
@@ -555,7 +555,7 @@ char *read_mysql(int server_id, const char *ip)
 		{
 			printf("bpls_camera select error\n");
 			mysql_close(g_conn); // 关闭链接
-			return NULL;
+			return -1;
 		}
 
 		stream_res = mysql_store_result(g_conn); 
@@ -577,14 +577,26 @@ char *read_mysql(int server_id, const char *ip)
         	cJSON_Delete(pJsonArry);
 		mysql_free_result(g_res); // 释放结果集
         	mysql_close(g_conn); // 关闭链接
-        	return NULL;
+        	return -1;
     	}
-    	printf("read mysql str = %s\n", str);
-    	cJSON_Delete(pJsonArry);
-	mysql_free_result(g_res); // 释放结果集
-        mysql_close(g_conn); // 关闭链接
 
-        return str;
+	if (msg == NULL)	
+	{
+		cJSON_Delete(pJsonArry);
+		mysql_free_result(g_res); // 释放结果集
+		mysql_close(g_conn); // 关闭链接
+		return -1;
+	}
+	else
+  	{
+		cJSON_Delete(pJsonArry);
+		mysql_free_result(g_res); // 释放结果集
+		mysql_close(g_conn); // 关闭链接
+		strcpy(msg, str);
+	}	
+
+
+        return 0;
 }
 
 int get_file_duration(const char *filename)

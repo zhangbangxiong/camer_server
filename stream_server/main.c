@@ -601,6 +601,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 			char server_id[32] = {0};
 			char server_ip[32] = {0};
                       	mg_get_http_var(&hm->query_string, "server_id", server_id, 32);
+			dzlog_info("get camera start");
                       	//mg_get_http_var(&hm->query_string, "ip", server_ip, 32);
 			//if (atoi(server_id) <= 0 || strlen(server_id) == 0 || strlen(server_ip) < 7)
 			if (atoi(server_id) <= 0 || strlen(server_id) == 0)
@@ -609,7 +610,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 				return;
 			}
 
-			char *msg = NULL;
+			char msg[1024*10] = {0};
 			num = mysql_ishave_data(atoi(server_id), NULL);
                         if (num == 0)
                         {
@@ -617,17 +618,19 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 				return;
                         }
 
-                       	msg = read_mysql(atoi(server_id), server_ip);
-			if (msg == NULL)
+                       	int res = read_mysql(atoi(server_id), server_ip, msg);
+			if (res == -1)
 			{
 				mg_reply_messge(conn, FAILED_RES);
-				free(msg);
 			}
 			else
 				mg_reply_messge(conn, msg);
+
+			dzlog_info("get camera end server_id = %s, msg = %s", server_id, msg);
 		}
 		else if (!strncmp(hm->uri.p, API_GETSAVETIME, strlen(API_RECORD)))		
 		{
+			dzlog_info("get save time start");
 			char msg[32] = {0};
                         int _time = read_time_mysql();
 			sprintf(msg, "%d", _time);
@@ -635,9 +638,11 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 				mg_reply_messge(conn, FAILED_RES);
 			else
 				mg_reply_messge(conn, msg);
+			dzlog_info("get save time end");
 		}
 		else if (!strncmp(hm->uri.p, API_DELVIDEO, strlen(API_DELVIDEO)))		
 		{
+			dzlog_info("del video %s", hm->query_string);
 			char name[64] = {0};
                       	mg_get_http_var(&hm->query_string, "name", name, 64);
 			dzlog_info("del video [%s] from mysql", name);

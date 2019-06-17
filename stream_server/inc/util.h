@@ -82,7 +82,7 @@ struct node
       
 };  
 
-char *read_mysql(int server_id, const char *ip);
+int   read_mysql(int server_id, const char *ip, char *res);
 int   mysql_ishave_data(int server_id, const char *ip);
 int   read_time_mysql();
 int   del_video_mysql(char *name);

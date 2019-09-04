@@ -1,4 +1,5 @@
 <configuration>
+	<server_ip>192.168.102.248</server_ip>
 	<server_port>18080</server_port>
 	<vod_server_ip>27.223.92.102</vod_server_ip>
 	<vod_m3u8_port>6060</vod_m3u8_port>
@@ -6,11 +7,8 @@
 	<store_download_port>7070</store_download_port>
 	<stream_server_ip>27.223.92.102</stream_server_ip>
 	<stream_server_http_port>4180</stream_server_http_port>
-	<mysql_ip>27.223.92.102</mysql_ip>
-	<mysql_port>13306</mysql_port>
-	<mysql_user>root</mysql_user>
-	<mysql_passwd>RbF2017_$</mysql_passwd>
-	<m3u8_path>/home/live</m3u8_path>
+	<m3u8_path>/home/video/live</m3u8_path>
+	<store_path>/home/video</store_path>
 	<vod_servers>
 		<vod_server port="18080">192.168.102.242</vod_server>
 	</vod_servers>

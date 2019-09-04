@@ -118,7 +118,7 @@ int get_local_ip()
 	}
 
  	local_ip[strlen(local_ip)] = '\0';
-	printf("local_ip = %s\n", local_ip);
+	dzlog_info("local_ip = %s\n", local_ip);
 
 /*
     char hname[128];
@@ -135,7 +135,7 @@ int get_local_ip()
 	int len = strlen(inet_ntoa(*(struct in_addr*)(hent->h_addr_list[i])));
 	if (len > 0)
 		memcpy(local_ip, inet_ntoa(*(struct in_addr*)(hent->h_addr_list[i])), len);
-        printf("%s\n", inet_ntoa(*(struct in_addr*)(hent->h_addr_list[i])), i);
+        dzlog_info("%s\n", inet_ntoa(*(struct in_addr*)(hent->h_addr_list[i])), i);
     }
 */
     return 0;
@@ -250,7 +250,7 @@ void sort(struct file_info a[], int len)
 
 static int get_m3u8_from_other_server(char *id,  char *start, char *end, char *result)
 {
-	printf("get_m3u8_from_other_server id = %s start = %s\n", id, start);
+	dzlog_info("get_m3u8_from_other_server id = %s start = %s\n", id, start);
 	int i = 0;
 	int r = 0;
 	for (i = 0;i<_config.vod_server_nums;i++)
@@ -294,35 +294,35 @@ static int m3u8_get_files(const char *path, const char *id,  char *start, char *
 	char start_hour[64]    = {0};
 	char end_hour[64]      = {0};
 
-	printf("start = %s\n", start);
-	printf("end   = %s\n", end);
+	dzlog_info("start = %s\n", start);
+	dzlog_info("end   = %s\n", end);
         struct tm* local; //本地时间   
 	int64_t s = atoi(start);
-	printf("s = %ld", s);
+	dzlog_info("s = %ld", s);
 	int64_t e = atoi(end);
         local = localtime(&s); //转为本地时间
 	sprintf(start_hour, "%d%02d%02d%02d", local->tm_year+1900, local->tm_mon+1, local->tm_mday, local->tm_hour);
 	int sh = atoi(start_hour);
-	printf("sh = %d\n", sh);
+	dzlog_info("sh = %d\n", sh);
         local = localtime(&e); //转为本地时间
 	sprintf(end_hour, "%d%02d%02d%02d", local->tm_year+1900, local->tm_mon+1, local->tm_mday, local->tm_hour);
 	int eh = atoi(end_hour);
-	printf("eh = %d\n", sh);
+	dzlog_info("eh = %d\n", sh);
 
-	printf("%s %s\n", start_hour, end_hour);
+	dzlog_info("%s %s\n", start_hour, end_hour);
 	sprintf(channel_path,"%s/%s", path, id);
 	snprintf(m3u8_file, 512, "%s/%s_%s.m3u8", channel_path, start, end);    
 	if (access(m3u8_file, F_OK) == 0)
 	{
-		printf("has this m3u8 file %s\n", m3u8_file);
+		dzlog_info("has this m3u8 file %s\n", m3u8_file);
 		sprintf(m3u8, "http://%s:%d/live/%s/%s_%s.m3u8", _config.vod_server_ip, _config.vod_m3u8_port, id, start, end);
-		printf("00 start_file_num = %d, sum = %d %s\n", start_file_num, sum, m3u8);
+		dzlog_info("00 start_file_num = %d, sum = %d %s\n", start_file_num, sum, m3u8);
 		return 1;
 	}
 
 	sprintf(channel_path,"%s/%s", path, id);
         num = scandir(channel_path, &namelist, recorddir, alphasort);
-	printf("num  = %d, id = %s\n", num, id);
+	dzlog_info("num  = %d, id = %s\n", num, id);
         if (num < 0)
         {
                 return -1;
@@ -391,7 +391,7 @@ static int m3u8_get_files(const char *path, const char *id,  char *start, char *
 
 	FILE *fp = NULL;    
 	snprintf(m3u8_file, 512, "%s/%s_%s.m3u8", channel_path, start, end);    
-	printf("m3u8_file = %s\n", m3u8_file);
+	dzlog_info("m3u8_file = %s\n", m3u8_file);
 	fp = fopen(m3u8_file, "wb");    
 	snprintf(tmp, sizeof(tmp),  
 			"#EXTM3U\n"                     
@@ -430,8 +430,8 @@ int send_data(char *url, char *data)
 {
         char  arg[256] = {0};
         sprintf(arg, "curl -l -H \"Content-type: application/json\" -X POST -d \'%s\' %s", data, url);
-        printf("arg = %s\n", arg);
         system(arg);
+        dzlog_info("arg = %s\n", arg);
         return 0;
 }
 
@@ -554,19 +554,19 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 
 			if (strlen(id) == 0 || strlen(end) == 0 || strlen(start) == 0)
 			{
-				dzlog_info("failed");
+				dzlog_info("get vod failed");
 				mg_reply_messge(conn, FAILED_RES);
 				return;
 			}
 
                 	result = m3u8_get_files(_config.m3u8_path, id, start, end, m3u8);
-			printf("m3u8_get_files res = %d\n", result);
+			printf("m3u8_get_files res = %d", result);
                 	if(result <= 0)
                 	{
 				int res = get_m3u8_from_other_server(id, start, end, msg);
 				if (res == 100)
 				{
-					printf("m3u8_get_files msg = %s\n", msg);
+					printf("m3u8_get_files msg = %s", msg);
 					mg_reply_messge(conn, msg);
 				}
 				else
@@ -582,6 +582,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 				sprintf(msg, "{\"result\": \"%s\"}", m3u8);
 				mg_reply_messge(conn, msg);
 			}
+			dzlog_info("---- get vod m3u8 finish----");
 
 		}
 		else if (!strncmp(hm->uri.p, API_RECORD, strlen(API_RECORD)))		
@@ -592,8 +593,9 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 
                       	mg_get_http_var(&hm->body, "path", path, 512);
                       	mg_get_http_var(&hm->body, "name", name, 256);
-			dzlog_info("path = %s\n", path);
+			dzlog_info("path = %s", path);
 			report_file_info(path, name);
+			dzlog_info("---- report record finish----");
 		}
 		else if (!strncmp(hm->uri.p, API_GETCAMERA, strlen(API_RECORD)))		
 		{
@@ -606,6 +608,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 			//if (atoi(server_id) <= 0 || strlen(server_id) == 0 || strlen(server_ip) < 7)
 			if (atoi(server_id) <= 0 || strlen(server_id) == 0)
 			{
+				dzlog_info("get camera params error");
 				mg_reply_messge(conn, FAILED_RES);
 				return;
 			}
@@ -614,6 +617,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 			num = mysql_ishave_data(atoi(server_id), NULL);
                         if (num == 0)
                         {
+				dzlog_info("get camera num  = %d", num);
 				mg_reply_messge(conn, FAILED_RES_NUM);
 				return;
                         }
@@ -626,7 +630,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 			else
 				mg_reply_messge(conn, msg);
 
-			dzlog_info("get camera end server_id = %s, msg = %s", server_id, msg);
+			dzlog_info("get camera finish server_id = %s, msg = %s", server_id, msg);
 		}
 		else if (!strncmp(hm->uri.p, API_GETSAVETIME, strlen(API_RECORD)))		
 		{
@@ -638,7 +642,7 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
 				mg_reply_messge(conn, FAILED_RES);
 			else
 				mg_reply_messge(conn, msg);
-			dzlog_info("get save time end");
+			dzlog_info("get save time finish");
 		}
 		else if (!strncmp(hm->uri.p, API_DELVIDEO, strlen(API_DELVIDEO)))		
 		{
@@ -647,8 +651,8 @@ static void ev_handler(struct mg_connection *conn, int ev, void *p)
                       	mg_get_http_var(&hm->query_string, "name", name, 64);
 			dzlog_info("del video [%s] from mysql", name);
 			del_video_mysql(name);
-			printf("9090\n");
 			mg_reply_messge(conn, FAILED_OK);
+			dzlog_info("del video %s finish", hm->query_string);
 		}
 	} 
 

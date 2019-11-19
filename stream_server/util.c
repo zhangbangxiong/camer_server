@@ -543,6 +543,7 @@ int read_mysql(int server_id, const char *ip, char *msg)
 		cJSON_AddStringToObject(pJsonsub, "in_stream_addr", g_row[3]);      /* 给对象增加内容 */
 		cJSON_AddStringToObject(pJsonsub, "status", g_row[9]);      /* 给对象增加内容 */
 		cJSON_AddStringToObject(pJsonsub, "name", g_row[1]);      /* 给对象增加内容 */
+		cJSON_AddStringToObject(pJsonsub, "updatetimes", g_row[22]);      /* 给对象增加内容 */
 
 		//find rtmp server ip and port
 		char output_stream_addr[256] = {0};

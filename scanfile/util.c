@@ -41,6 +41,7 @@
 #include "config.h"
 #include "md5.h"
 #include "zlog.h"
+#include "libavformat/avformat.h"
 
 #define TAG ","
 
@@ -152,6 +153,17 @@ long long _gettime_s(void)       //unit: s
     return ts;
 }
 
+int get_hour()
+{
+	time_t timep;
+	time(&timep);
+
+	struct tm* local; //本地时间
+        local = localtime(&timep); //转为本地时间
+
+	return local->tm_hour;
+}
+
 time_t _gettime_w(int *week)       //unit: s
 {
 	struct tm *local_time;
@@ -197,6 +209,42 @@ time_t str_to_time(char *_t)
 
 	
 	return t_;
+}
+
+int url_encode_2(const char* src, const int srcsize, char* dst, int dstsize)
+{
+    int i;
+    int j = 0;
+    char ch;
+
+    if ((src==NULL) || (dst==NULL) || (srcsize<=0) || (dstsize<=0))
+    {
+        return 0;
+    }
+
+    for (i=0; (i<srcsize)&&(j<dstsize); ++i)
+    {
+        ch = src[i];
+        if (((ch>='A') && (ch<'Z')) ||
+            ((ch>='a') && (ch<'z')) ||
+            ((ch>='0') && (ch<'9'))) {
+            dst[j++] = ch;
+        } else if (ch == ' ') {
+            dst[j++] = '+';
+        } else if (ch == '.' || ch == '-' || ch == '_' || ch == '*') {
+            dst[j++] = ch;
+        } else {
+            if (j+3 < dstsize) {
+                sprintf(dst+j, "%%%02X", (unsigned char)ch);
+                j += 3;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    dst[j] = '\0';
+    return j;
 }
 
 char *url_encode(char const *s, int len, int *new_len)
@@ -259,5 +307,35 @@ int get_pts(struct node *list, char *md5)
 	return -1;
 }
 
+int get_file_duration(const char *filename)
+{
+    int ret = 0;
+    unsigned int i = 0;
+    AVFormatContext *ifmt_ctx = NULL;
+
+    av_register_all();
+
+    if ((ret =
+         avformat_open_input(&ifmt_ctx, filename, NULL, NULL)) < 0) {
+        printf("Cannot open input file\n");
+        return NULL;
+    }
+
+    if ((ret = avformat_find_stream_info(ifmt_ctx, NULL)) < 0) {
+        printf("Cannot find stream information\n");
+        return NULL;
+    }
+
+    int duration = ifmt_ctx->duration/1000000;
+    if (duration < 0)
+        duration = 0;
+
+
+    if (ifmt_ctx)
+    {
+        avformat_free_context(ifmt_ctx);
+    }
+    return duration;
+}
 
 

@@ -17,12 +17,15 @@
 #include "ezxml.h"
 #include "arm_xml.h"
 
+extern char logconf_file[256];
+extern char etcconf_file[256];
+
 void configure(struct Config *config)
 {
     ezxml_t rxml;
     ezxml_t cxml;
 
-    rxml = ezxml_parse_file("etc.xml");
+    rxml = ezxml_parse_file(etcconf_file);
    
     if ((cxml = ezxml_child(rxml, "server_id")) != 0x0)      /* codec exec dir */
         strcpy(config->server_id, cxml->txt);

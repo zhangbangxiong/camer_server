@@ -82,6 +82,8 @@ char local_ip[128] = "0.0.0.0";
 config_t  _config;
 
 char * record = "/home/record";
+char logconf_file[256] = {0};
+char etcconf_file[256] = {0};
 
 int get_local_ip()
 {
@@ -764,9 +766,18 @@ void damon()
 
 int main(int argc, char **argv) 
 {
+       	if (argc != 3) 
+        {
+        	printf("Usage: %s <log conf file> <etc file>\n", argv[0]);
+        	return 1;
+    	}
+
+        memcpy(logconf_file, argv[1], strlen(argv[1]));
+        memcpy(etcconf_file, argv[2], strlen(argv[2]));
+
 	struct sigaction sa;
         int rc = 0;    
-	rc = dzlog_init("server.conf", "stream_server");    
+	rc = dzlog_init(logconf_file, "stream_server");    
 	if (rc) 
 	{        
 		fprintf(stderr, "dzlog init error\n");        

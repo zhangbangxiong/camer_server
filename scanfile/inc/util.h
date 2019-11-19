@@ -63,6 +63,9 @@ struct node
 char *url_encode(char const *s, int len, int *new_len);
 int parse_week_info(char *week, int winfo[]);
 time_t _gettime_w(int *week);       //unit: s
+int get_hour();
 long long _gettime_s(void) ;
 time_t str_to_time(char *_t);
+int get_file_duration(const char *filename);
+int url_encode_2(const char* src, const int srcsize, char* dst, int dstsize);
 #endif

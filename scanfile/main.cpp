@@ -29,7 +29,6 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
-#include "util.h"
 #include "smp_md5.h"
 #include "cpumem.h"
 #include "md5.h"
@@ -51,6 +50,7 @@
 #include "curl/curl.h"
 extern "C" {
 #include "config.h"
+#include "util.h"
 #include "http_post.h"
 }
 
@@ -62,7 +62,6 @@ vector<string> v_file_name;
 
 int save_time = 66400;
 config_t  _config;
-
 
 char *my_strrstr(const char *dst, const char *src)
 {
@@ -91,15 +90,6 @@ char *my_strrstr(const char *dst, const char *src)
 	return right;
 }
 
-
-long long _gettime_s(void)       //unit: s
-{
-    struct timeval tv;
-
-    gettimeofday(&tv,NULL);
-    signed long long ts = (signed long long)tv.tv_sec;
-    return ts;
-}
 
 int regex_match(const char *buffer, const char *pattern)  
 {  
@@ -207,7 +197,7 @@ int mv_file(const char *file)
 		tm* local; //本地时间   
 		local = localtime(&sec); //转为本地时间
 		sprintf(spath, "%s/%d%02d%02d%02d", lpath, local->tm_year+1900, local->tm_mon+1, local->tm_mday, local->tm_hour);
-		dzlog_info("spath = %s", spath);
+		dzlog_info("move spath = %s", spath);
         	if (access(spath, F_OK) == -1)
         	{
 			mkdir(spath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); 
@@ -219,6 +209,97 @@ int mv_file(const char *file)
 
 	return 0;
 }
+
+int send_data(char *url, char *data)
+{
+        char  arg[256] = {0};
+        sprintf(arg, "curl -l -H \"Content-type: application/json\" -X POST -d \'%s\' %s", data, url);
+        system(arg);
+        dzlog_info("arg = %s", arg);
+        return 0;
+}
+
+static int report_file_info(char *filepath, char *camera_id)
+{
+        char curl[64] = {0};//"http://192.168.102.248:80/api/record/create";
+        char durl[256] = {0};
+        char _data[256] = {0};
+        char edata[512] = {0};
+
+        struct stat buf;
+        int  result = 0;
+        long long start_time = 0;
+        long long end_time   = 0;
+
+        char tmp[512] = {0};
+        char filename[64] = {0};
+
+        memcpy(tmp, filepath, strlen(filepath));
+        printf("00 tmp = %s\n", tmp);
+        if (tmp[strlen(tmp) - 1] == '/')
+        {
+               tmp[strlen(tmp) - 1] = '\0';
+        }
+        printf("01 tmp = %s\n", tmp);
+
+        char *q = strrchr(tmp, '/');
+        if (q != NULL)
+        {
+               memcpy(filename, q + 1, strlen(tmp) - (q - tmp));
+        }
+
+        printf("02 tmp = %s\n", tmp);
+        if (access(filepath, F_OK) == -1)
+        {
+               dzlog_info("file %s is not exist", filepath);
+               return -1;
+        }
+
+        sprintf(curl, "http://%s:%d/api/record/create", _config.stream_server_ip, _config.stream_server_http_port);
+        char tmp_time[64] = {0};
+        char *p = strchr(filename, '_'); 
+        if (p == NULL)
+                return -1;
+        q = strchr(filename, '.'); 
+        if (q == NULL)
+                return -1;
+        memcpy(tmp_time, p + 1, q - p - 1);
+        printf("tmp_time = %s\n", tmp_time);
+        struct tm tm;
+        strptime(tmp_time, "%Y-%m-%d-%H-%M-%S", &tm);
+        time_t pp = mktime(&tm);
+        printf("pp = %d\n", (int)pp);
+
+        result = stat(filepath, &buf);
+        if ( result != 0 )
+        {
+                return -2;
+        }
+        else if (buf.st_size > 0)
+        {
+                dzlog_info("file name    = %s",filename);
+                dzlog_info("camera_id    = %s",camera_id);
+                int duration = get_file_duration(filepath);
+                start_time = pp;
+                if (duration > 0)
+                        end_time = start_time + duration;
+                else
+                        end_time = buf.st_mtime;
+                int id = 0;
+                sscanf(camera_id, "1000%d", &id);
+                if (id > 0 && start_time > 0 && end_time > 0 && (end_time - start_time) > 120)
+                {
+                        sprintf(durl, "http://%s:%d/%s", _config.store_server_ip, _config.store_download_port, filename);
+                        sprintf(_data, "{\"camera_id\":\"%d\",\"start_time\":%lld,\"end_time\":%lld,\"download_url\":\"%s\"}", id, start_time, end_time, durl);
+                        url_encode_2(_data, strlen(_data), edata, 1024);
+                        dzlog_info("_data = %s", _data);
+                        send_data(curl, _data);
+                }
+        }
+
+        return 0;
+}
+
 int scan_dirpath(char *path, char *pattern)
 {  
     	char file_path[512] = {0};  
@@ -227,6 +308,7 @@ int scan_dirpath(char *path, char *pattern)
 
     	struct dirent *ptr = NULL;  
     	struct stat buf;  
+    	struct stat st;  
     	int i = 0, j = 0;
   
 	int64_t sec = _gettime_s();
@@ -234,17 +316,37 @@ int scan_dirpath(char *path, char *pattern)
 	local = localtime(&sec); //转为本地时间
 	char year[8] = {0};
 	sprintf(year, "%d", local->tm_year+1900);
+        dzlog_info("year = %s, path = %s", year, path);
 
-    	if ((dir = opendir(path)) == NULL) 
+	if(stat(path, &st) < 0 || !S_ISDIR(st.st_mode)) 
+	{
+        	dzlog_info("invalid path: %s", path);
+        	return -1;
+        }
+
+    	if (!(dir = opendir(path))) 
 	{  
-        	perror("opendir failed!");  
+        	dzlog_info("opendir failed! path = %s", path);  
         	return -1;  
     	}  
 
-    	while((ptr = readdir(dir)) != NULL) 
+        dzlog_info("scan_dirpath path ===== %s", path);
+    	while (1) 
 	{  
-        	if (ptr->d_name[0] != '.') 
+    	     	ptr = readdir(dir);
+		if (ptr == NULL)
 		{
+			dzlog_info("readdir [%s] failed", path);
+			break;
+		}
+
+		dzlog_info("readdir [%s] ok", ptr->d_name);
+		if((!strncmp(ptr->d_name, ".", 1)) || (!strncmp(ptr->d_name, "..", 2)))
+            		continue;
+
+        	if (1) 
+		{
+			memset(file_path, 0, 512);
             		strcpy(file_path, path);  
             		if (path[strlen(path) - 1] != '/')  
 				strcat(file_path, "/");  
@@ -253,8 +355,12 @@ int scan_dirpath(char *path, char *pattern)
 
             		int ret = stat(file_path, &buf);  
             		if (ret != 0)  
+                        {
+				dzlog_info("stat failed file_path = %s", file_path);
 				continue;
+                        }
 
+			dzlog_info("S_ISREG cfile_path = %s", file_path);
             		if(S_ISREG(buf.st_mode)) 
 			{        
                 		for(i = 0; i < (int)strlen(file_path); i++) 
@@ -269,25 +375,50 @@ int scan_dirpath(char *path, char *pattern)
                 		}	  
 
 				
-                		if (regex_match(file, pattern) == 0 && strstr(file_path, "record")) 
+			        //dzlog_info("file_path = %s, file = %s\n", file_path,file);
+                		if (regex_match(file, pattern) == 0 && strstr(file_path, "record") && strstr(file_path, year) != NULL) 
 				{
-					v_file_path.push_back(file_path); 
+					if (strstr(file_path, "over") == NULL)
+					{
+						char newpath[512] = {0};
+						char cameraid[32] = {0};
+
+						memcpy(cameraid, ptr->d_name, (strchr(ptr->d_name, '-') - ptr->d_name));
+						memcpy(newpath, file_path, (strchr(file_path, '.') - file_path));
+						strcat(newpath, "_over.mp4");
+						//dzlog_info("file_path = %s, newpath = %s, ptr->d_name = %s", file_path, newpath, ptr->d_name);
+						rename(file_path, newpath);	
+						memset(file_path, 0, sizeof(file_path));
+						memcpy(file_path, newpath, strlen(newpath));
+						report_file_info(file_path, cameraid);
+					}
+
+					if (strstr(file_path, "over") != NULL)
+						v_file_path.push_back(file_path); 
 				}
                 		else if (regex_match(file, pattern) == 0 && strstr(file_path, "live") && strstr(file_path, "ts")) 
 				{ 
+					//dzlog_info("move filepath = %s", file_path);
 					mv_file(file_path);
                 		}	  
             		}  
             		else if(S_ISDIR(buf.st_mode))
 			{
+                                dzlog_info("the file [%s] is path year = %s", file_path, year);
 				if (strstr(file_path, year) == NULL) 
 				{     
+					dzlog_info("start scan_dirpath file_path = %s", file_path);
                 			scan_dirpath(file_path, pattern);  
             			}  
                     		else
 				{
 					v_file_path.push_back(file_path); 
 				} 
+			}
+			else
+			{
+				dzlog_info("the file[%s] is not file, and is not path, error, exit", file_path);
+				exit(1);
 			}
         	}  
     	}
@@ -380,17 +511,7 @@ int send_info(char* url, char* data)
     return 0;
 }
 
-int send_data(char *url, char *data)
-{
-	char  arg[256] = {0};
-	sprintf(arg, "curl_1 -l -H \"Content-type: application/json\" -X POST -d \'%s\' %s", data, url);
-	printf("arg = %s\n", arg);
-	//system(arg);
-	return 0;
-
-}
-
-int report_file_info(char *filepath, char *filename)
+int report_file_info1(char *filepath, char *filename)
 {
 	char curl[] = "http://192.168.102.248:80/api/record/create";
         char _data[256] = {0};
@@ -610,7 +731,7 @@ int main(int argc, char **argv)
 
     		scan_dirpath(_config.store_path, pattern);  
 
-		//dzlog_info("-------------------------------- save_time = %d", save_time);
+		dzlog_info("-------------------------------- save_time = %d, _config.store_path = %s, v_file_path.size() = %d", save_time, _config.store_path, (int)v_file_path.size());
     		for (int i = 0; i < (int)v_file_path.size(); i++) 
 		{  
 			int  res = check_file(v_file_path[i].c_str());
@@ -628,8 +749,12 @@ int main(int argc, char **argv)
 			}
 
     		}
-		//dzlog_info("================================\n");
-		sleep(3);
+		sleep(10);
+		if (get_hour() == 21)
+		{
+			dzlog_info("restart pro ... [%d]", get_hour());
+			break;	
+		}
 	}
   
     	return 0;  

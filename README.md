@@ -1,59 +1,59 @@
-Á÷Ã½Ìå²¿Êğ
-1.²¿ÊğÁ÷Ã½Ìå·şÎñÆ÷
-  £¨1£©ÏÂÔØnginx-video-1.6.2.tar.gz£¬½âÑ¹
-  £¨2£©Ö´ĞĞ./configure --prefix=/home/tmp/ --with-http_ssl_module --user=nobody --group=nobody --with-http_stub_status_module --with-http_ssl_module --with-pcre=./pcre-8.36 --with-zlib=./zlib-1.2.8 --with-http_stub_status_module --add-module=./nginx_ajp_module-master --add-module=./nginx-upload-module-2.2 --add-module=./nginx-rtmp-module-1.2.1
-  £¨3£©½«nginx.stream.confÎÄ¼ş¿½±´µ½/usr/local/nginx/conf/nginx.confÄ¿Â¼ÏÂ
-  £¨4£©´´½¨nginx.confÅäÖÃÎÄ¼şÖĞµÄÎÄ¼ş¼Ğ£¬ÀıÈç/home/live
-2.²¿Êğstream_server·şÎñ
-    a.ÏÂÔØstreamserver.stream.tar.gz, ½âÑ¹
-	b. ÆäÖĞÓĞÈı¸öÎÄ¼ş etc.xml  server.conf  stream_server
-	   server.conf   - ÈÕÖ¾ÅäÖÃÎÄ¼ş
-	   etc.xml       - ³ÌĞòÅäÖÃÎÄ¼ş
-	   stream_server - ³ÌĞò
-	   etc.xmlÅäÖÃÎÄ¼şËµÃ÷£º
-	   		- <server_ip>27.223.102.92</server_ip>#²¿Êğ´Ë³ÌĞòµÄÖ÷Á÷Ã½Ìå·şÎñÆ÷ipµØÖ·
-			- <server_port>4188</server_port>#´Ë³ÌĞòstream_serverËùĞèÒªµÄ¶Ë¿Ú £¡£¡server_ip server_portÎªÒ»¶Ô£¬ĞèÅäÖÃÍâÍøipÓëÍâÍø¶Ë¿Ú
-			- <stream_server_ip>27.223.92.102</stream_server_ip>#web·şÎñÆ÷µØÖ·£¬ÍâÍøip
-			- <stream_server_http_port>4180</stream_server_http_port>#web·şÎñÆ÷¶Ë¿Ú£¬ÍâÍø¶Ë¿Ú
-			- <mysql_ip>27.223.92.102</mysql_ip>#Êı¾İ¿âµØÖ·£¬ÍâÍøip £¨Ö÷Á÷Ã½Ìå·şÎñÆ÷ĞèÅäÖÃ´ËÏî£©
-			- <mysql_port>13306</mysql_port>#Êı¾İ¿â¶Ë¿Ú£¬ÍâÍø¶Ë¿Ú£¨Ö÷Á÷Ã½Ìå·şÎñÆ÷ĞèÅäÖÃ´ËÏî£©
-			- <mysql_user>root</mysql_user>#Êı¾İ¿âµÇÂ½ÓÃ»§Ãû£¨Ö÷Á÷Ã½Ìå·şÎñÆ÷ĞèÅäÖÃ´ËÏî£©
-			- <mysql_passwd>RbF2017_$</mysql_passwd>#Êı¾İ¿âµÇÂ½ÃÜÂë£¨Ö÷Á÷Ã½Ìå·şÎñÆ÷ĞèÅäÖÃ´ËÏî£©
+æµåª’ä½“éƒ¨ç½²
+1.éƒ¨ç½²æµåª’ä½“æœåŠ¡å™¨
+  ï¼ˆ1ï¼‰ä¸‹è½½nginx-video-1.6.2.tar.gzï¼Œè§£å‹
+  ï¼ˆ2ï¼‰æ‰§è¡Œ./configure --prefix=/home/tmp/ --with-http_ssl_module --user=nobody --group=nobody --with-http_stub_status_module --with-http_ssl_module --with-pcre=./pcre-8.36 --with-zlib=./zlib-1.2.8 --with-http_stub_status_module --add-module=./nginx_ajp_module-master --add-module=./nginx-upload-module-2.2 --add-module=./nginx-rtmp-module-1.2.1
+  ï¼ˆ3ï¼‰å°†nginx.live.confæ–‡ä»¶æ‹·è´åˆ°/usr/local/nginx/conf/nginx.confç›®å½•ä¸‹
+  ï¼ˆ4ï¼‰åˆ›å»ºnginx.confé…ç½®æ–‡ä»¶ä¸­çš„æ–‡ä»¶å¤¹ï¼Œä¾‹å¦‚/home/live
+2.éƒ¨ç½²stream_serveræœåŠ¡
+    a.ä¸‹è½½streamserver.stream.tar.gz, è§£å‹
+	b. å…¶ä¸­æœ‰ä¸‰ä¸ªæ–‡ä»¶ etc.xml  server.conf  stream_server
+	   server.conf   - æ—¥å¿—é…ç½®æ–‡ä»¶
+	   etc.xml       - ç¨‹åºé…ç½®æ–‡ä»¶
+	   stream_server - ç¨‹åº
+	   etc.xmlé…ç½®æ–‡ä»¶è¯´æ˜ï¼š
+	   		- <server_ip>27.223.102.92</server_ip>#éƒ¨ç½²æ­¤ç¨‹åºçš„ä¸»æµåª’ä½“æœåŠ¡å™¨ipåœ°å€
+			- <server_port>4188</server_port>#æ­¤ç¨‹åºstream_serveræ‰€éœ€è¦çš„ç«¯å£ ï¼ï¼server_ip server_portä¸ºä¸€å¯¹ï¼Œéœ€é…ç½®å¤–ç½‘ipä¸å¤–ç½‘ç«¯å£
+			- <stream_server_ip>27.223.92.102</stream_server_ip>#webæœåŠ¡å™¨åœ°å€ï¼Œå¤–ç½‘ip
+			- <stream_server_http_port>4180</stream_server_http_port>#webæœåŠ¡å™¨ç«¯å£ï¼Œå¤–ç½‘ç«¯å£
+			- <mysql_ip>27.223.92.102</mysql_ip>#æ•°æ®åº“åœ°å€ï¼Œå¤–ç½‘ip ï¼ˆä¸»æµåª’ä½“æœåŠ¡å™¨éœ€é…ç½®æ­¤é¡¹ï¼‰
+			- <mysql_port>13306</mysql_port>#æ•°æ®åº“ç«¯å£ï¼Œå¤–ç½‘ç«¯å£ï¼ˆä¸»æµåª’ä½“æœåŠ¡å™¨éœ€é…ç½®æ­¤é¡¹ï¼‰
+			- <mysql_user>root</mysql_user>#æ•°æ®åº“ç™»é™†ç”¨æˆ·åï¼ˆä¸»æµåª’ä½“æœåŠ¡å™¨éœ€é…ç½®æ­¤é¡¹ï¼‰
+			- <mysql_passwd>RbF2017_$</mysql_passwd>#æ•°æ®åº“ç™»é™†å¯†ç ï¼ˆä¸»æµåª’ä½“æœåŠ¡å™¨éœ€é…ç½®æ­¤é¡¹ï¼‰
 	   
-µã²¥·şÎñÆ÷²¿Êğ
-1.²¿ÊğÁ÷Ã½Ìå·şÎñÆ÷
-  £¨1£©ÏÂÔØnginx-video-1.6.2.tar.gz£¬½âÑ¹
-  £¨2£©Ö´ĞĞ./configure --prefix=/home/tmp/ --with-http_ssl_module --user=nobody --group=nobody --with-http_stub_status_module --with-http_ssl_module --with-pcre=./pcre-8.36 --with-zlib=./zlib-1.2.8 --with-http_stub_status_module --add-module=./nginx_ajp_module-master --add-module=./nginx-upload-module-2.2 --add-module=./nginx-rtmp-module-1.2.1
-  £¨3£©½«nginx.confÎÄ¼ş¿½±´µ½/usr/local/nginx/conf/nginx.confÄ¿Â¼ÏÂ
-  £¨4£©´´½¨nginx.vod.confÅäÖÃÎÄ¼şÖĞµÄÎÄ¼ş¼Ğ£¬ÀıÈç/home/vod
-2.²¿Êğstream_server·şÎñ
-    a.ÏÂÔØstreamserver.vod.tar.gz, ½âÑ¹
-	b. ÆäÖĞÓĞÈı¸öÎÄ¼ş etc.xml  server.conf  stream_server
-	   server.conf   - ÈÕÖ¾ÅäÖÃÎÄ¼ş
-	   etc.xml       - ³ÌĞòÅäÖÃÎÄ¼ş
-	   stream_server - ³ÌĞò 
-	   etc.xmlÅäÖÃÎÄ¼şËµÃ÷£º	   
-	   		- <server_ip>27.223.102.92</server_ip>#Ö÷Á÷Ã½Ìå·şÎñÆ÷ipµØÖ·
-			- <server_port>4188</server_port>#Ö÷Á÷Ã½Ìå·şÎñÆ÷µÄstream_serverµÄ¶Ë¿Ú £¡£¡server_ip server_portÎªÒ»¶Ô£¬ĞèÅäÖÃÍâÍøipÓëÍâÍø¶Ë¿Ú
-			- <vod_server_ip>27.223.92.102</store_server_ip>#´Ë·şÎñÆ÷Îª»Ø¿´·şÎñÆ÷£¬´ËÅäÖÃÏîÎª´Ë»Ø¿´·şÎñÆ÷ipµØÖ·£¬ÍâÍøip
-			- <vod_m3u8_port>4166</store_m3u8_port>#´Ë·şÎñÆ÷Îª»Ø¿´·şÎñÆ÷£¬´ËÅäÖÃÏîÎª´Ë»Ø¿´·şÎñÆ÷hls²¥·Å¶Ë¿Ú£¬ÍâÍø¶Ë¿Ú
-			- <m3u8_path>/home/vod</m3u8_path>#hls±¾µØÄ¿Â¼
-´æ´¢Ìå²¿Êğ
-1.²¿ÊğÁ÷Ã½Ìå·şÎñÆ÷
-  £¨1£©ÏÂÔØnginx-video-1.6.2.tar.gz£¬½âÑ¹
-  £¨2£©Ö´ĞĞ./configure --prefix=/home/tmp/ --with-http_ssl_module --user=nobody --group=nobody --with-http_stub_status_module --with-http_ssl_module --with-pcre=./pcre-8.36 --with-zlib=./zlib-1.2.8 --with-http_stub_status_module --add-module=./nginx_ajp_module-master --add-module=./nginx-upload-module-2.2 --add-module=./nginx-rtmp-module-1.2.1
-  £¨3£©½«nginx.store.confÎÄ¼ş¿½±´µ½/usr/local/nginx/conf/nginx.confÄ¿Â¼ÏÂ
-  £¨4£©´´½¨nginx.confÅäÖÃÎÄ¼şÖĞµÄÎÄ¼ş¼Ğ£¬ÀıÈç/home/record
-2.²¿Êğstream_server·şÎñ
-    a.ÏÂÔØstreamserver.store.tar.gz, ½âÑ¹
-	b. ÆäÖĞÓĞÈı¸öÎÄ¼ş etc.xml  server.conf  stream_server
-	   server.conf   - ÈÕÖ¾ÅäÖÃÎÄ¼ş
-	   etc.xml       - ³ÌĞòÅäÖÃÎÄ¼ş
-	   stream_server - ³ÌĞò	  
-	   etc.xmlÅäÖÃÎÄ¼şËµÃ÷£º
-	   		- <server_ip>27.223.102.92</server_ip>#Ö÷Á÷Ã½Ìå·şÎñÆ÷ipµØÖ·
-			- <server_port>4188</server_port>#Ö÷Á÷Ã½Ìå·şÎñÆ÷µÄstream_serverµÄ¶Ë¿Ú £¡£¡server_ip server_portÎªÒ»¶Ô£¬ĞèÅäÖÃÍâÍøipÓëÍâÍø¶Ë¿Ú
-			- <store_server_ip>27.223.92.102</store_server_ip>#´Ë·şÎñÆ÷Îª´æ´¢·şÎñÆ÷£¬´ËÅäÖÃÏîÎª´Ë´¢´æ·şÎñÆ÷ipµØÖ·£¬ÍâÍøip
-			- <store_download_port>4167</store_download_port>#´Ë·şÎñÆ÷Îª´æ´¢·şÎñÆ÷£¬´ËÅäÖÃÏîÎª´Ë´æ´¢·şÎñÆ÷ÎÄ¼şÏÂÔØ¶Ë¿Ú£¬ÍâÍø¶Ë¿Ú
-			- <record_path>/home/record</record_path>#hls±¾µØÄ¿Â¼	   
+ç‚¹æ’­æœåŠ¡å™¨éƒ¨ç½²
+1.éƒ¨ç½²æµåª’ä½“æœåŠ¡å™¨
+  ï¼ˆ1ï¼‰ä¸‹è½½nginx-video-1.6.2.tar.gzï¼Œè§£å‹
+  ï¼ˆ2ï¼‰æ‰§è¡Œ./configure --prefix=/home/tmp/ --with-http_ssl_module --user=nobody --group=nobody --with-http_stub_status_module --with-http_ssl_module --with-pcre=./pcre-8.36 --with-zlib=./zlib-1.2.8 --with-http_stub_status_module --add-module=./nginx_ajp_module-master --add-module=./nginx-upload-module-2.2 --add-module=./nginx-rtmp-module-1.2.1
+  ï¼ˆ3ï¼‰å°†nginx.confæ–‡ä»¶æ‹·è´åˆ°/usr/local/nginx/conf/nginx.confç›®å½•ä¸‹
+  ï¼ˆ4ï¼‰åˆ›å»ºnginx.vod.confé…ç½®æ–‡ä»¶ä¸­çš„æ–‡ä»¶å¤¹ï¼Œä¾‹å¦‚/home/vod
+2.éƒ¨ç½²stream_serveræœåŠ¡
+    a.ä¸‹è½½streamserver.vod.tar.gz, è§£å‹
+	b. å…¶ä¸­æœ‰ä¸‰ä¸ªæ–‡ä»¶ etc.xml  server.conf  stream_server
+	   server.conf   - æ—¥å¿—é…ç½®æ–‡ä»¶
+	   etc.xml       - ç¨‹åºé…ç½®æ–‡ä»¶
+	   stream_server - ç¨‹åº 
+	   etc.xmlé…ç½®æ–‡ä»¶è¯´æ˜ï¼š	   
+	   		- <server_ip>27.223.102.92</server_ip>#ä¸»æµåª’ä½“æœåŠ¡å™¨ipåœ°å€
+			- <server_port>4188</server_port>#ä¸»æµåª’ä½“æœåŠ¡å™¨çš„stream_serverçš„ç«¯å£ ï¼ï¼server_ip server_portä¸ºä¸€å¯¹ï¼Œéœ€é…ç½®å¤–ç½‘ipä¸å¤–ç½‘ç«¯å£
+			- <vod_server_ip>27.223.92.102</store_server_ip>#æ­¤æœåŠ¡å™¨ä¸ºå›çœ‹æœåŠ¡å™¨ï¼Œæ­¤é…ç½®é¡¹ä¸ºæ­¤å›çœ‹æœåŠ¡å™¨ipåœ°å€ï¼Œå¤–ç½‘ip
+			- <vod_m3u8_port>4166</store_m3u8_port>#æ­¤æœåŠ¡å™¨ä¸ºå›çœ‹æœåŠ¡å™¨ï¼Œæ­¤é…ç½®é¡¹ä¸ºæ­¤å›çœ‹æœåŠ¡å™¨hlsæ’­æ”¾ç«¯å£ï¼Œå¤–ç½‘ç«¯å£
+			- <m3u8_path>/home/vod</m3u8_path>#hlsæœ¬åœ°ç›®å½•
+å­˜å‚¨ä½“éƒ¨ç½²
+1.éƒ¨ç½²æµåª’ä½“æœåŠ¡å™¨
+  ï¼ˆ1ï¼‰ä¸‹è½½nginx-video-1.6.2.tar.gzï¼Œè§£å‹
+  ï¼ˆ2ï¼‰æ‰§è¡Œ./configure --prefix=/home/tmp/ --with-http_ssl_module --user=nobody --group=nobody --with-http_stub_status_module --with-http_ssl_module --with-pcre=./pcre-8.36 --with-zlib=./zlib-1.2.8 --with-http_stub_status_module --add-module=./nginx_ajp_module-master --add-module=./nginx-upload-module-2.2 --add-module=./nginx-rtmp-module-1.2.1
+  ï¼ˆ3ï¼‰å°†nginx.record.confæ–‡ä»¶æ‹·è´åˆ°/usr/local/nginx/conf/nginx.confç›®å½•ä¸‹
+  ï¼ˆ4ï¼‰åˆ›å»ºnginx.confé…ç½®æ–‡ä»¶ä¸­çš„æ–‡ä»¶å¤¹ï¼Œä¾‹å¦‚/home/record
+2.éƒ¨ç½²stream_serveræœåŠ¡
+    a.ä¸‹è½½streamserver.store.tar.gz, è§£å‹
+	b. å…¶ä¸­æœ‰ä¸‰ä¸ªæ–‡ä»¶ etc.xml  server.conf  stream_server
+	   server.conf   - æ—¥å¿—é…ç½®æ–‡ä»¶
+	   etc.xml       - ç¨‹åºé…ç½®æ–‡ä»¶
+	   stream_server - ç¨‹åº	  
+	   etc.xmlé…ç½®æ–‡ä»¶è¯´æ˜ï¼š
+	   		- <server_ip>27.223.102.92</server_ip>#ä¸»æµåª’ä½“æœåŠ¡å™¨ipåœ°å€
+			- <server_port>4188</server_port>#ä¸»æµåª’ä½“æœåŠ¡å™¨çš„stream_serverçš„ç«¯å£ ï¼ï¼server_ip server_portä¸ºä¸€å¯¹ï¼Œéœ€é…ç½®å¤–ç½‘ipä¸å¤–ç½‘ç«¯å£
+			- <store_server_ip>27.223.92.102</store_server_ip>#æ­¤æœåŠ¡å™¨ä¸ºå­˜å‚¨æœåŠ¡å™¨ï¼Œæ­¤é…ç½®é¡¹ä¸ºæ­¤å‚¨å­˜æœåŠ¡å™¨ipåœ°å€ï¼Œå¤–ç½‘ip
+			- <store_download_port>4167</store_download_port>#æ­¤æœåŠ¡å™¨ä¸ºå­˜å‚¨æœåŠ¡å™¨ï¼Œæ­¤é…ç½®é¡¹ä¸ºæ­¤å­˜å‚¨æœåŠ¡å™¨æ–‡ä»¶ä¸‹è½½ç«¯å£ï¼Œå¤–ç½‘ç«¯å£
+			- <record_path>/home/record</record_path>#hlsæœ¬åœ°ç›®å½•	   
   

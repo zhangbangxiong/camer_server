@@ -57,3 +57,8 @@
 			- <store_download_port>4167</store_download_port>#此服务器为存储服务器，此配置项为此存储服务器文件下载端口，外网端口
 			- <record_path>/home/record</record_path>#hls本地目录	   
   
+stream_server程序部署：
+a.将lib.tar.gz此文件解压，把里面的文件拷贝到/usr/local/lib/目录下，命令：cp -d lib/* /usr/local/lib/
+b.将lib.conf拷贝到/etc/ld.so.conf.d/，然后执行命令ldconfig
+c.修改配置文件
+d.启动程序

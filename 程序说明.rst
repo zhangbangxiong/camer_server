@@ -13,7 +13,7 @@
 	- 部署的服务器
 		- 回看服务器 录制下载服务器
 	- 启动方式
-		- nohup ./scan >/dev/null &
+		- ./scan
 	- 相关配置文件
 	    - etc.xml 需要在此配置文件中配置下列项
 	    	- <store_path>/home</store_path>#存储目录 
